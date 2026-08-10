@@ -1,7 +1,6 @@
 package io.github.mortuusars.exposure.client.gui.screen;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.ExposureClient;
 import io.github.mortuusars.exposure.client.gui.Widgets;
@@ -20,12 +19,11 @@ import io.github.mortuusars.exposure.world.camera.FilmColor;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
 import io.github.mortuusars.exposure.world.sound.SoundEffect;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
@@ -35,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class FilmFrameInspectScreen extends Screen {
-    public static final ResourceLocation TEXTURE = Exposure.resource("textures/gui/film_frame_inspect.png");
+    public static final Identifier TEXTURE = Exposure.resource("textures/gui/film_frame_inspect.png");
 
     public static final int BG_SIZE = 78;
     public static final int FRAME_SIZE = 54;
@@ -113,63 +111,63 @@ public class FilmFrameInspectScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         float scale = (float) (zoom.get() * zoomFactor);
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableDepthTest();
 
-        renderTransparentBackground(guiGraphics);
+        extractTransparentBackground(guiGraphics);
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0);
-        guiGraphics.pose().translate(width / 2f, height / 2f, 50);
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(x, y);
+        guiGraphics.pose().translate(width / 2f, height / 2f);
+        guiGraphics.pose().scale(scale, scale);
 
-        guiGraphics.pose().translate(BG_SIZE / -2f, BG_SIZE / -2f, 0);
+        guiGraphics.pose().translate(BG_SIZE / -2f, BG_SIZE / -2f);
 
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        GuiUtil.blit(guiGraphics.pose(), 0, 0, BG_SIZE, BG_SIZE, 0, 0, 256, 256, 0);
+        GuiUtil.blit(guiGraphics, TEXTURE, 0, 0, 0, 0, BG_SIZE, BG_SIZE, 256, 256);
 
         Frame frame = getCurrentFrame();
         ExposureType filmType = frame.type();
         FilmColor filmColor = filmType.getFilmColor();
+        int filmTint = GuiUtil.normalizedTint(
+                filmColor.r(), filmColor.g(), filmColor.b(), filmColor.a());
 
-        RenderSystem.setShaderColor(filmColor.r(), filmColor.g(), filmColor.b(), filmColor.a());
-        GuiUtil.blit(guiGraphics.pose(), 0, 0, BG_SIZE, BG_SIZE, 0, BG_SIZE, 256, 256, 0);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        GuiUtil.blitColored(guiGraphics, TEXTURE, 0, 0, 0, BG_SIZE, BG_SIZE, BG_SIZE, 256, 256, filmTint);
 
-        guiGraphics.pose().translate(12, 12, 0);
+        guiGraphics.pose().translate(12, 12);
         RenderableImage image = ExposureClient.renderedExposures().getOrCreate(frame).modifyWith(ImageEffect.NEGATIVE_FILM);
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        ExposureClient.imageRenderer().render(image,  guiGraphics.pose(), bufferSource,
+        ExposureClient.imageRenderer().extract(image, guiGraphics,
                 new RenderCoordinates(0, 0, FRAME_SIZE, FRAME_SIZE), filmType.getImageColor());
-        bufferSource.endBatch();
 
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
 
-        guiGraphics.pose().pushPose();
+        guiGraphics.pose().pushMatrix();
         // Places widgets above, because they will be covered when photo is zoomed in
-//        guiGraphics.pose().translate(0, 0, 100);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.pose().popPose();
+//        guiGraphics.pose().translate(0, 0);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.pose().popMatrix();
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Background is rendered manually in #render method.
         // Otherwise, background will be rendered on top
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return keyBindings.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
+        return keyBindings.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        return keyBindings.keyReleased(keyCode, scanCode, modifiers) || super.keyReleased(keyCode, scanCode, modifiers);
+    public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
+        return keyBindings.keyReleased(event) || super.keyReleased(event);
     }
 
     @Override
@@ -185,8 +183,11 @@ public class FilmFrameInspectScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (super.mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
+        if (super.mouseDragged(event, dragX, dragY)) return true;
 
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             float centerX = width / 2f;

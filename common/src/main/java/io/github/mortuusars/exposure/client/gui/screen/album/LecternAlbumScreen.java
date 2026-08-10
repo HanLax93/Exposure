@@ -4,7 +4,7 @@ import io.github.mortuusars.exposure.Config;
 import io.github.mortuusars.exposure.client.util.Minecrft;
 import io.github.mortuusars.exposure.world.inventory.LecternAlbumMenu;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.network.chat.CommonComponents;
@@ -85,7 +85,10 @@ public class LecternAlbumScreen extends AlbumViewScreen implements MenuAccess<Le
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         int page = getMenu().getPage();
         if (page % 2 == 1 && isHovering(70, 167, 17, 7, mouseX, mouseY)) {
             sendButtonClick(LecternAlbumMenu.BUTTON_PAGE_JUMP_RANGE_START + page - 1);
@@ -93,11 +96,11 @@ public class LecternAlbumScreen extends AlbumViewScreen implements MenuAccess<Le
             sendButtonClick(LecternAlbumMenu.BUTTON_PAGE_JUMP_RANGE_START + page + 1);
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected void drawPageNumbers(GuiGraphics guiGraphics, int currentSpreadIndex, int mouseX, int mouseY) {
+    protected void drawPageNumbers(GuiGraphicsExtractor guiGraphics, int currentSpreadIndex, int mouseX, int mouseY) {
         super.drawPageNumbers(guiGraphics, currentSpreadIndex, mouseX, mouseY);
 
         int page = getMenu().getPage();
@@ -105,24 +108,24 @@ public class LecternAlbumScreen extends AlbumViewScreen implements MenuAccess<Le
         String rightPageNumber = Integer.toString(currentSpreadIndex * 2 + 2);
 
         if (page % 2 == 1 && isHovering(70, 167, 17, 7, mouseX, mouseY)) {
-            guiGraphics.drawString(font, leftPageNumber, leftPos + 71 + (8 - font.width(leftPageNumber) / 2),
+            guiGraphics.text(font, leftPageNumber, leftPos + 71 + (8 - font.width(leftPageNumber) / 2),
                     topPos + 167, Config.getColor(Config.Client.ALBUM_FONT_MAIN_COLOR), false);
         } else if (page % 2 == 0 && isHovering(210, 167, 17, 7, mouseX, mouseY)) {
-            guiGraphics.drawString(font, rightPageNumber, leftPos + 212 + (8 - font.width(rightPageNumber) / 2),
+            guiGraphics.text(font, rightPageNumber, leftPos + 212 + (8 - font.width(rightPageNumber) / 2),
                     topPos + 167, Config.getColor(Config.Client.ALBUM_FONT_MAIN_COLOR), false);
         }
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+    protected void renderTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
         super.renderTooltip(guiGraphics, x, y);
 
         int page = getMenu().getPage();
 
         if (page % 2 == 1 && isHovering(70, 167, 17, 7, x, y)) {
-            guiGraphics.renderTooltip(font, Component.translatable("gui.exposure.album.lectern.set_current_page"), x, y);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.exposure.album.lectern.set_current_page"), x, y);
         } else if (page % 2 == 0 && isHovering(210, 167, 17, 7, x, y)) {
-            guiGraphics.renderTooltip(font, Component.translatable("gui.exposure.album.lectern.set_current_page"), x, y);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.exposure.album.lectern.set_current_page"), x, y);
         }
     }
 

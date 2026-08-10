@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.mortuusars.exposure.client.camera.CameraClient;
 import io.github.mortuusars.exposure.client.util.Minecrft;
+import io.github.mortuusars.exposure.Exposure;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.Nullable;
@@ -11,12 +12,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 
 public class KeyboardHandler {
+    private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Exposure.resource("camera"));
     @Nullable
     private static KeyMapping openCameraControlsKey = null;
 
     public static void registerKeymappings(Function<KeyMapping, KeyMapping> registerFunction) {
         KeyMapping keyMapping = new KeyMapping("key.exposure.camera_controls",
-                InputConstants.UNKNOWN.getValue(), "category.exposure");
+                InputConstants.UNKNOWN.getValue(), CATEGORY);
 
         openCameraControlsKey = registerFunction.apply(keyMapping);
     }

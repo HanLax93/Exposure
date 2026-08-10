@@ -6,15 +6,14 @@ import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.client.animation.Animation;
 import io.github.mortuusars.exposure.client.animation.EasingFunction;
 import io.github.mortuusars.exposure.client.util.Minecrft;
-import net.minecraft.Util;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Util;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ItemListScreen extends Screen {
-    public static final ResourceLocation TEXTURE = Exposure.resource("textures/gui/item_list.png");
+    public static final Identifier TEXTURE = Exposure.resource("textures/gui/item_list.png");
 
     protected final Screen parent;
     protected final List<ItemStack> items;
@@ -102,24 +101,23 @@ public class ItemListScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         int left = leftPos;
         int top = topPos;
 
-        renderTransparentBackground(guiGraphics);
+        extractTransparentBackground(guiGraphics);
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate((width / 2f), (height / 2f), 0.0f);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate((width / 2f), (height / 2f));
         float animProgress = (float)openingAnimation.getValue();
-        guiGraphics.pose().scale(animProgress, animProgress, animProgress);
-        guiGraphics.pose().translate(-(width / 2f), -(height / 2f), 0.0f);
+        guiGraphics.pose().scale(animProgress, animProgress);
+        guiGraphics.pose().translate(-(width / 2f), -(height / 2f));
 
         renderBg(guiGraphics, mouseX, mouseY, partialTick);
-        RenderSystem.disableDepthTest();
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         {
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(left, top, 0.0f);
+            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().translate(left, top);
             hoveredSlot = null;
             for (Slot slot : slots) {
                 if (slot.isActive()) {
@@ -135,55 +133,52 @@ public class ItemListScreen extends Screen {
                 renderSlotHighlight(guiGraphics, slot.x, slot.y, 0);
             }
             this.renderLabels(guiGraphics, mouseX, mouseY);
-            guiGraphics.pose().popPose();
+            guiGraphics.pose().popMatrix();
         }
-        RenderSystem.enableDepthTest();
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
 
         renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 
     }
 
-    protected void renderBg(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    protected void renderBg(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 
         // Render BG expanding it according to number of rows
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, 17);
+        io.github.mortuusars.exposure.client.util.GuiUtil.blit(guiGraphics, TEXTURE, leftPos, topPos, 0, 0, imageWidth, 17);
         for (int i = 0; i < rowsCount; i++) {
-            guiGraphics.blit(TEXTURE, leftPos, topPos + 17 + (i * 18), 0, 17, imageWidth, 18);
+            io.github.mortuusars.exposure.client.util.GuiUtil.blit(guiGraphics, TEXTURE, leftPos, topPos + 17 + (i * 18), 0, 17, imageWidth, 18);
         }
-        guiGraphics.blit(TEXTURE, leftPos, topPos + 17 + (rowsCount * 18), 0, 35, imageWidth, 7);
+        io.github.mortuusars.exposure.client.util.GuiUtil.blit(guiGraphics, TEXTURE, leftPos, topPos + 17 + (rowsCount * 18), 0, 35, imageWidth, 7);
 
         for (Slot slot : slots) {
-            guiGraphics.blit(TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 176, 0, 18, 18);
+            io.github.mortuusars.exposure.client.util.GuiUtil.blit(guiGraphics, TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 176, 0, 18, 18);
         }
     }
 
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
+    protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        guiGraphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
     }
 
-    protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
+    protected void renderSlot(GuiGraphicsExtractor guiGraphics, Slot slot) {
         int x = slot.x;
         int y = slot.y;
         ItemStack itemStack = slot.getItem();
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0.0f, 0.0f, 100.0f);
-        guiGraphics.renderItem(itemStack, x, y, slot.x + slot.y * imageWidth);
-        guiGraphics.renderItemDecorations(font, itemStack, x, y, null);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(0.0f, 0.0f);
+        guiGraphics.item(itemStack, x, y, slot.x + slot.y * imageWidth);
+        guiGraphics.itemDecorations(font, itemStack, x, y, null);
+        guiGraphics.pose().popMatrix();
     }
 
-    public static void renderSlotHighlight(GuiGraphics guiGraphics, int x, int y, int blitOffset) {
-        guiGraphics.fillGradient(RenderType.guiOverlay(), x, y, x + 16, y + 16, -2130706433, -2130706433, blitOffset);
+    public static void renderSlotHighlight(GuiGraphicsExtractor guiGraphics, int x, int y, int blitOffset) {
+        guiGraphics.fill(x, y, x + 16, y + 16, -2130706433);
     }
 
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+    protected void renderTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
         if (hoveredSlot != null && hoveredSlot.hasItem()) {
             ItemStack itemStack = hoveredSlot.getItem();
 
@@ -191,7 +186,7 @@ public class ItemListScreen extends Screen {
                     ? abstractContainerScreen.getTooltipFromContainerItem(itemStack)
                     : Screen.getTooltipFromItem(Minecrft.get(), itemStack);
 
-            guiGraphics.renderTooltip(font, tooltipLines, itemStack.getTooltipImage(), x, y);
+            guiGraphics.setTooltipForNextFrame(font, tooltipLines, itemStack.getTooltipImage(), x, y);
         }
     }
 
@@ -206,17 +201,23 @@ public class ItemListScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (Minecrft.options().keyInventory.matches(keyCode, scanCode)) {
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
+        if (Minecrft.options().keyInventory.matches(event)) {
             onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(mouseX, mouseY, button)) return true;
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
+        if (super.mouseClicked(event, doubleClick)) return true;
 
         if (!isHovering(0, 0, imageWidth, imageHeight, mouseX, mouseY)) {
             onClose();
@@ -228,6 +229,6 @@ public class ItemListScreen extends Screen {
 
     @Override
     public void onClose() {
-        Minecrft.get().setScreen(parent);
+        Minecrft.get().gui.setScreen(parent);
     }
 }

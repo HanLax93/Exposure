@@ -2,6 +2,7 @@ package io.github.mortuusars.exposure.client.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.input.KeyEvent;
 
 import java.util.function.Supplier;
 
@@ -57,12 +58,12 @@ public interface Key {
 
     static Key press(KeyMapping keyMapping) {
         return (key, code, action, mods) -> Key.actionMatches(InputConstants.PRESS, action)
-                && keyMapping.matches(key, code);
+                && keyMapping.matches(new KeyEvent(key, code, mods));
     }
 
     static Key release(KeyMapping keyMapping) {
         return (key, code, action, mods) -> Key.actionMatches(InputConstants.RELEASE, action)
-                && keyMapping.matches(key, code);
+                && keyMapping.matches(new KeyEvent(key, code, mods));
     }
 
     record KeyWithPredicate(Key key, Supplier<Boolean> predicate) implements Key {
