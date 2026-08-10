@@ -1,5 +1,27 @@
+// Architectury Plugin 3.x still looks up this legacy task while configuring its
+// common-source transformer. Minecraft 26.2 is unobfuscated, so no remapping is
+// performed; the placeholder keeps the transformer configuration available.
+tasks.register("remapJar", net.fabricmc.loom.task.RemapJarTask)
+
 architectury {
     common rootProject.enabled_platforms.split(',')
+}
+
+// Architectury 3.4 asks Loom for obfuscation mappings while calculating these
+// task properties. Minecraft 26.2 ships unobfuscated, so Loom intentionally has
+// no mapping configuration. Supply the equivalent transformer properties with
+// an empty mixin-mapping path while retaining @ExpectPlatform transformation.
+tasks.named("transformProductionFabric").configure {
+    properties.set(providers.provider {
+        [
+                "architectury.mixin.mappings"    : "",
+                "architectury.inject.injectables": "true",
+                "architectury.unique.identifier": "${project.group}:${project.name}",
+                "architectury.classpath"         : configurations.compileClasspath.asPath,
+                "architectury.platform.name"     : "fabric",
+                "architectury.mcmeta.version"    : "4"
+        ]
+    })
 }
 
 loom {
@@ -14,17 +36,19 @@ dependencies {
     // We depend on Fabric Loader here to use the Fabric @Environment annotations,
     // which get remapped to the correct annotations on each platform.
     // Do NOT use other classes from Fabric Loader.
-    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    implementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 
-    modApi "fuzs.forgeconfigapiport:forgeconfigapiport-common-neoforgeapi:${forge_config_api_port_version}"
+    api "fuzs.forgeconfigapiport:forgeconfigapiport-common:${forge_config_api_port_version}"
+    compileOnly "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forge_config_api_port_version}"
 
-    modCompileOnlyApi "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnlyApi "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 
-    modCompileOnly("curse.maven:real-camera-851574:${realcamera_neoforge_id}")
-    modCompileOnly("maven.modrinth:easy-anvils:${easy_anvils_modrinth_neoforge_version}")
+    compileOnly("curse.maven:real-camera-851574:${realcamera_neoforge_id}")
+    compileOnly("maven.modrinth:easy-anvils:${easy_anvils_modrinth_neoforge_version}")
 
     testImplementation(platform("org.junit:junit-bom:${project.property("jupiterVersion")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     "junit"(platform("org.junit:junit-bom:${project.property("jupiterVersion")}"))
     "junit"("org.junit.jupiter:junit-jupiter")
 }

@@ -11,4 +11,6 @@ rootProject.name = 'Exposure'
 
 include 'common'
 include 'fabric'
-include 'neoforge'
+if (providers.gradleProperty('enabled_platforms').getOrElse('').split(',').contains('neoforge')) {
+    include 'neoforge'
+}

@@ -1,7 +1,7 @@
 plugins {
-    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+    id "net.fabricmc.fabric-loom" version "1.17-SNAPSHOT" apply false
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id 'com.gradleup.shadow' version '9.6.1' apply false
     id "me.modmuss50.mod-publish-plugin" version "0.8.4"
     id 'org.moddedmc.wiki.toolkit' version '0.2.6'
 }
@@ -16,7 +16,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'dev.architectury.loom'
+    apply plugin: 'net.fabricmc.fabric-loom'
     apply plugin: 'architectury-plugin'
     apply plugin: 'maven-publish'
 
@@ -101,11 +101,9 @@ subprojects {
     }
 
     loom {
-        silentMojangMappingsLicense()
         runs {
             client {
                 property 'item_asset_export.render.namespaces', 'exposure'
-                vmArgs '-XX:+AllowEnhancedClassRedefinition', '-XX:HotswapAgent=core'
                 //  , '-Dmixin.debug.export=true'
             }
         }
@@ -114,13 +112,8 @@ subprojects {
     dependencies {
         minecraft "net.minecraft:minecraft:${rootProject.minecraft_version}"
 
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${parchment_version}@zip")
-        }
-
-        modCompileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-        modCompileOnlyApi("curse.maven:jade-324717:${jade_neoforge_id}")
+        compileOnlyApi("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+        compileOnlyApi("curse.maven:jade-324717:${jade_neoforge_id}")
     }
 
     java {
@@ -129,12 +122,13 @@ subprojects {
         // If you remove this line, sources will not be generated.
         withSourcesJar()
 
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
 
     tasks.withType(JavaCompile).configureEach {
-        it.options.release = 21
+        it.options.release = 25
+        it.options.compilerArgs.addAll(['-Xmaxerrs', '5000'])
     }
 
     processResources {
@@ -249,7 +243,7 @@ publishMods {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
         projectId = mod_curseforge_project_id
         minecraftVersions.add("${minecraft_version}")
-        javaVersions.add(JavaVersion.VERSION_21)
+        javaVersions.add(JavaVersion.VERSION_25)
         clientRequired = true
         serverRequired = true
     }
@@ -260,14 +254,6 @@ publishMods {
         minecraftVersions.add("${minecraft_version}")
     }
 
-    curseforge("curseforgeNeoForge") {
-        from cfOptions
-        file project(":neoforge")
-        modLoaders.add("neoforge")
-        displayName = "${mod_name} - NeoForge ${minecraft_version} - ${mod_version}"
-        optional("jei")
-    }
-
     curseforge("curseforgeFabric") {
         from cfOptions
         file project(":fabric")
@@ -275,14 +261,6 @@ publishMods {
         displayName = "${mod_name} - Fabric ${minecraft_version} - ${mod_version}"
         requires("fabric-api")
         requires("forge-config-api-port")
-        optional("jei")
-    }
-
-    modrinth("modrinthNeoForge") {
-        from mrOptions
-        file project(":neoforge")
-        modLoaders.add("neoforge")
-        displayName = "${mod_name} - ${mod_version}"
         optional("jei")
     }
 
