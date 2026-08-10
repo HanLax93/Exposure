@@ -2,6 +2,7 @@ package io.github.mortuusars.exposure.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import io.github.mortuusars.exposure.client.input.MouseHandler;
+import net.minecraft.client.input.MouseButtonInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,10 +20,10 @@ public class MouseHandlerMixin {
         }
     }
 
-    @Inject(method = "onPress", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getOverlay()Lnet/minecraft/client/gui/screens/Overlay;",
+    @Inject(method = "onButton", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;overlay()Lnet/minecraft/client/gui/screens/Overlay;",
             ordinal = 0), cancellable = true)
-    private void onPress(long windowPointer, int button, int action, int modifiers, CallbackInfo ci) {
-        if (MouseHandler.buttonPressed(button, action, modifiers))
+    private void onPress(long windowPointer, MouseButtonInfo button, int action, CallbackInfo ci) {
+        if (MouseHandler.buttonPressed(button.button(), action, button.modifiers()))
             ci.cancel();
     }
 

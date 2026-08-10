@@ -4,26 +4,24 @@ import com.mojang.blaze3d.platform.NativeImage;
 import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.client.image.renderable.RenderableImage;
 import io.github.mortuusars.exposure.client.image.renderable.RenderableImageIdentifier;
-import io.github.mortuusars.exposure.util.color.Color;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
 
 public class ResourceImage extends SimpleTexture implements RenderableImage {
     @Nullable
     protected NativeImage image;
 
-    public ResourceImage(ResourceLocation location) {
+    public ResourceImage(Identifier location) {
         super(location);
     }
 
-    public static @NotNull RenderableImage getOrCreate(ResourceLocation location) {
+    public static @NotNull RenderableImage getOrCreate(Identifier location) {
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
         @Nullable AbstractTexture existingTexture = textureManager.byPath.get(location);
@@ -57,7 +55,7 @@ public class ResourceImage extends SimpleTexture implements RenderableImage {
     @Override
     public int getPixelARGB(int x, int y) {
         @Nullable NativeImage image = getNativeImage();
-        return image != null ? Color.ABGRtoARGB(image.getPixelRGBA(x, y)) : 0x00000000;
+        return image != null ? image.getPixel(x, y) : 0x00000000;
     }
 
     public @Nullable NativeImage getNativeImage() {
@@ -65,9 +63,10 @@ public class ResourceImage extends SimpleTexture implements RenderableImage {
             return image;
 
         try {
-            NativeImage image = super.getTextureImage(Minecraft.getInstance().getResourceManager()).getImage();
-            this.image = image;
-            return image;
+            try (TextureContents contents = super.loadContents(Minecraft.getInstance().getResourceManager())) {
+                this.image = copy(contents.image());
+                return this.image;
+            }
         } catch (IOException e) {
             Exposure.LOGGER.error("Cannot load texture: {}", e.toString());
             return null;
@@ -75,13 +74,20 @@ public class ResourceImage extends SimpleTexture implements RenderableImage {
     }
 
     @Override
-    public void reset(@NotNull TextureManager textureManager, @NotNull ResourceManager resourceManager,
-                      @NotNull ResourceLocation path, @NotNull Executor executor) {
-        super.reset(textureManager, resourceManager, path, executor);
+    public TextureContents loadContents(ResourceManager resourceManager) throws IOException {
         if (image != null) {
             image.close();
             image = null;
         }
+        TextureContents contents = super.loadContents(resourceManager);
+        image = copy(contents.image());
+        return contents;
+    }
+
+    private static NativeImage copy(NativeImage source) {
+        NativeImage copy = new NativeImage(source.format(), source.getWidth(), source.getHeight(), false);
+        copy.copyFrom(source);
+        return copy;
     }
 
     @Override
@@ -101,6 +107,6 @@ public class ResourceImage extends SimpleTexture implements RenderableImage {
 
     @Override
     public RenderableImageIdentifier getIdentifier() {
-        return new RenderableImageIdentifier(location.toString());
+        return new RenderableImageIdentifier(resourceId().toString());
     }
 }

@@ -81,11 +81,11 @@ public class FileCaptureTask extends Task<Result<Image>> {
             return Result.error(ERROR_PATH_EMPTY);
         }
 
-        if (!Minecrft.get().isSingleplayer() && Config.Client.FILE_LOADING_ONLY_RELATIVE_TO_EXPOSURES_DIR.get()) {
+        if (!Minecrft.get().hasSingleplayerServer() && Config.Client.FILE_LOADING_ONLY_RELATIVE_TO_EXPOSURES_DIR.get()) {
             if (file.isAbsolute()) {
                 LOGGER.error("Absolute paths are not supported. Path: {}", filepath);
                 LOGGER.info("Place image into a game directory and use a relative path.");
-                Minecrft.player().displayClientMessage(Component.literal("Absolute path is not allowed for image projecting. Loading is allowed only from a game directory.")
+                io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), Component.literal("Absolute path is not allowed for image projecting. Loading is allowed only from a game directory.")
                       .withStyle(ChatFormatting.RED), false);
                 return Result.error(ERROR_PATH_INVALID);
             }

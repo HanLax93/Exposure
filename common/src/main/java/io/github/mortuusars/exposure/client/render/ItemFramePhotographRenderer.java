@@ -4,28 +4,28 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.mortuusars.exposure.ExposureClient;
 import io.github.mortuusars.exposure.world.item.PhotographItem;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.ItemFrameRenderState;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemFramePhotographRenderer {
-    public static void render(ItemFrame itemFrame, PoseStack poseStack, MultiBufferSource bufferSource,
+    public static void render(ItemFrameRenderState itemFrame, PoseStack poseStack, SubmitNodeCollector bufferSource,
                                  int packedLight, PhotographItem item, ItemStack stack) {
-        if (itemFrame.getType() == EntityType.GLOW_ITEM_FRAME)
-            packedLight = LightTexture.FULL_BRIGHT;
+        if (itemFrame.isGlowFrame)
+            packedLight = LightCoordsUtil.FULL_BRIGHT;
 
         poseStack.pushPose();
 
-        String entityName = BuiltInRegistries.ENTITY_TYPE.getKey(itemFrame.getType()).toString();
+        String entityName = BuiltInRegistries.ENTITY_TYPE.getKey(itemFrame.entityType).toString();
         if (entityName.equals("quark:glass_frame")) {
             poseStack.translate(0, 0, 0.475f);
         }
 
         // Snap to 90 degrees like a map.
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45 * itemFrame.getRotation()));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(45 * itemFrame.rotation));
 
         float pixelSize = 0.0625f;
         float scale = 1f - pixelSize * 6; // 3px from each side

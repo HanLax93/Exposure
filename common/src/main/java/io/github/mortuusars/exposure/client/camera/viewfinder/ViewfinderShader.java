@@ -1,7 +1,6 @@
 package io.github.mortuusars.exposure.client.camera.viewfinder;
 
-import com.google.gson.JsonSyntaxException;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.client.util.Minecrft;
 import io.github.mortuusars.exposure.world.camera.Camera;
@@ -10,11 +9,11 @@ import io.github.mortuusars.exposure.data.Filters;
 import io.github.mortuusars.exposure.world.item.camera.Attachment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.util.Set;
 
 public class ViewfinderShader implements AutoCloseable {
     private final Minecraft minecraft;
@@ -23,6 +22,8 @@ public class ViewfinderShader implements AutoCloseable {
 
     @Nullable
     private PostChain shader;
+    @Nullable
+    private Identifier shaderLocation;
     private boolean active;
 
     public ViewfinderShader(Camera camera, Viewfinder viewfinder) {
@@ -32,33 +33,21 @@ public class ViewfinderShader implements AutoCloseable {
         this.update();
     }
 
-    public void apply(ResourceLocation shaderLocation) {
-        if (shader != null) {
-            if (shader.getName().equals(shaderLocation.toString())) {
-                return;
-            }
-
-            shader.close();
-        }
-
-        try {
-            shader = new PostChain(minecraft.getTextureManager(), minecraft.getResourceManager(),
-                    minecraft.getMainRenderTarget(), shaderLocation);
-            shader.resize(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
-            active = true;
-        } catch (IOException e) {
-            Exposure.LOGGER.warn("Failed to load shader: {}", shaderLocation, e);
+    public void apply(Identifier shaderLocation) {
+        if (shaderLocation.equals(this.shaderLocation)) return;
+        shader = minecraft.getShaderManager().getPostChain(shaderLocation, Set.of(PostChain.MAIN_TARGET_ID));
+        if (shader == null) {
+            Exposure.LOGGER.warn("Failed to load shader: {}", shaderLocation);
             active = false;
-        } catch (JsonSyntaxException e) {
-            Exposure.LOGGER.warn("Failed to parse shader: {}", shaderLocation, e);
-            active = false;
+            this.shaderLocation = null;
+            return;
         }
+        this.shaderLocation = shaderLocation;
+        active = true;
     }
 
     public void resize(int width, int height) {
-        if (shader != null) {
-            shader.resize(width, height);
-        }
+        // Post chains use the target dimensions when processed in 26.2.
     }
 
     /**
@@ -66,10 +55,7 @@ public class ViewfinderShader implements AutoCloseable {
      */
     public void process() {
         if (shader != null && active) {
-            RenderSystem.disableBlend();
-            RenderSystem.disableDepthTest();
-            RenderSystem.resetTextureMatrix();
-            shader.process(minecraft.getTimer().getGameTimeDeltaTicks());
+            shader.process(minecraft.gameRenderer.mainRenderTarget(), GraphicsResourceAllocator.UNPOOLED);
         }
     }
 
@@ -86,11 +72,8 @@ public class ViewfinderShader implements AutoCloseable {
     }
 
     public void remove() {
-        if (shader != null) {
-            shader.close();
-        }
-
         shader = null;
+        shaderLocation = null;
     }
 
     @Override

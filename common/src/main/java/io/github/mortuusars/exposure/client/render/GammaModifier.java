@@ -15,7 +15,6 @@ public class GammaModifier {
         if (offset != offsetValue) {
             offset = offsetValue;
             // Update light texture immediately:
-            Minecraft.getInstance().gameRenderer.lightTexture().tick();
         }
     }
 
@@ -23,7 +22,6 @@ public class GammaModifier {
         if (offset != 0f) {
             offset = 0f;
             // Update light texture immediately:
-            Minecraft.getInstance().gameRenderer.lightTexture().tick();
         }
     }
 

@@ -1,10 +1,11 @@
 package io.github.mortuusars.exposure.mixin.client;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.github.mortuusars.exposure.client.camera.CameraClient;
+import io.github.mortuusars.exposure.client.render.FovModifier;
 import io.github.mortuusars.exposure.world.item.camera.CameraItem;
 import net.minecraft.client.Camera;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +23,8 @@ public abstract class CameraMixin {
     private float xRot;
     @Shadow
     private float yRot;
+    @Shadow
+    private boolean detached;
 
     @Inject(method = "getMaxZoom", at = @At(value = "RETURN"), cancellable = true)
     private void getMaxZoom(float maxZoom, CallbackInfoReturnable<Float> cir) {
@@ -30,10 +33,16 @@ public abstract class CameraMixin {
         }
     }
 
-    @Inject(method = "setup", at = @At(value = "RETURN"))
-    private void onSetup(BlockGetter level, Entity entity, boolean detached, boolean thirdPersonReverse, float partialTick, CallbackInfo ci) {
+    @ModifyReturnValue(method = "calculateFov", at = @At("RETURN"))
+    private float modifyFov(float original) {
+        return (float) FovModifier.modify(original);
+    }
+
+    @Inject(method = "alignWithEntity", at = @At(value = "RETURN"))
+    private void onAlignWithEntity(float partialTick, CallbackInfo ci) {
         if (CameraClient.viewfinder() != null && CameraClient.viewfinder().isLookingThrough()) {
-            if (detached && thirdPersonReverse && CameraClient.viewfinder().camera().inSelfieMode()) {
+            if (detached && Minecraft.getInstance().options.getCameraType().isMirrored()
+                    && CameraClient.viewfinder().camera().inSelfieMode()) {
                 setRotation((float) (yRot + CameraClient.viewfinder().selfie().getCameraYRot()),
                         (float) (xRot + CameraClient.viewfinder().selfie().getCameraXRot()));
             }

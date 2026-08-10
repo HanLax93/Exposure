@@ -46,7 +46,7 @@ public class ExportExposuresTask extends Task<Result<Boolean>> {
 
     public static boolean start(List<String> ids, ExportSize size, ExportLook look) {
         if (ExportExposuresTask.isRunning()) {
-            Minecrft.player().displayClientMessage(Component.translatable("task.exposure.export.already_running"), false);
+            io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), Component.translatable("task.exposure.export.already_running"), false);
             return false;
         }
         ExposureClient.cycles().addParallelTask(new ExportExposuresTask(ids, size, look));
@@ -128,8 +128,8 @@ public class ExportExposuresTask extends Task<Result<Boolean>> {
                             print(Component.translatable("task.exposure.export.exported")
                                     .append("'" + fileName + "'").withStyle(Style.EMPTY
                                             .withUnderlined(true)
-                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Open")))
-                                            .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath()))));
+                                            .withHoverEvent(new HoverEvent.ShowText(Component.literal("Open")))
+                                            .withClickEvent(new ClickEvent.OpenFile(file))));
                         })
                         .export();
             } catch (Exception e) {
@@ -150,10 +150,10 @@ public class ExportExposuresTask extends Task<Result<Boolean>> {
     }
 
     protected void print(MutableComponent message) {
-        Minecrft.execute(() -> Minecrft.player().displayClientMessage(message, false));
+        Minecrft.execute(() -> io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), message, false));
     }
 
     protected void updateStatus(MutableComponent status) {
-        Minecrft.execute(() -> Minecrft.player().displayClientMessage(status, true));
+        Minecrft.execute(() -> io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), status, true));
     }
 }

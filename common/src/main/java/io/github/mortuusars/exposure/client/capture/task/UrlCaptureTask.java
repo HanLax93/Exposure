@@ -55,7 +55,7 @@ public class UrlCaptureTask extends Task<Result<Image>> {
             return false;
         }
 
-        if (Minecrft.get().isSingleplayer()) {
+        if (Minecrft.get().hasSingleplayerServer()) {
             return true;
         }
 
@@ -67,7 +67,7 @@ public class UrlCaptureTask extends Task<Result<Image>> {
                 if (!Config.Client.URL_LOADING_ALLOWED_DOMAINS.get().contains(host)
                       && Config.Client.URL_LOADING_ALLOWED_SUBDOMAINS.get().stream().noneMatch(host::endsWith)) {
                     LOGGER.error("Domain is not allowed for image loading. URL: {}", uri);
-                    Minecrft.player().displayClientMessage(Component.literal("Domain is not allowed for image projecting.")
+                    io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), Component.literal("Domain is not allowed for image projecting.")
                           .withStyle(ChatFormatting.RED), false);
                     yield false;
                 }

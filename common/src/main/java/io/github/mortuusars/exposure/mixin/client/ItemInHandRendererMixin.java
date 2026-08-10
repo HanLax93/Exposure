@@ -9,7 +9,7 @@ import io.github.mortuusars.exposure.world.item.PhotographItem;
 import io.github.mortuusars.exposure.world.item.StackedPhotographsItem;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -28,17 +28,17 @@ public abstract class ItemInHandRendererMixin {
     @Shadow
     private ItemStack offHandItem;
     @Shadow
-    protected abstract void renderPlayerArm(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pCombinedLight, float pEquippedProgress, float pSwingProgress, HumanoidArm pSide);
+    protected abstract void renderPlayerArm(PoseStack pMatrixStack, SubmitNodeCollector pBuffer, int pCombinedLight, float pEquippedProgress, float pSwingProgress, HumanoidArm pSide);
     @Shadow
     protected abstract float calculateMapTilt(float pPitch);
     @Shadow
-    protected abstract void renderMapHand(PoseStack pMatrixStack, MultiBufferSource pBuffer, int pCombinedLight, HumanoidArm pSide);
+    protected abstract void renderMapHand(PoseStack pMatrixStack, SubmitNodeCollector pBuffer, int pCombinedLight, HumanoidArm pSide);
 
-    @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 0),
+    @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 0),
             cancellable = true)
     private void renderPhotograph(AbstractClientPlayer player, float partialTicks, float pitch, InteractionHand hand,
                                   float swingProgress, ItemStack stack, float equipProgress, PoseStack poseStack,
-                                  MultiBufferSource buffer, int combinedLight, CallbackInfo ci, @Local boolean isMainHand, @Local HumanoidArm arm) {
+                                  SubmitNodeCollector buffer, int combinedLight, CallbackInfo ci, @Local boolean isMainHand, @Local HumanoidArm arm) {
         if (CameraClient.viewfinder() != null && CameraClient.viewfinder().isLookingThrough()) {
             poseStack.popPose();
             ci.cancel();
@@ -59,7 +59,7 @@ public abstract class ItemInHandRendererMixin {
     }
 
     @Unique
-    private void exposure$renderOneHandedPhotograph(AbstractClientPlayer player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, float pEquippedProgress, HumanoidArm pHand, float pSwingProgress, ItemStack stack) {
+    private void exposure$renderOneHandedPhotograph(AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector buffer, int packedLight, float pEquippedProgress, HumanoidArm pHand, float pSwingProgress, ItemStack stack) {
         float f = pHand == HumanoidArm.RIGHT ? 1.0F : -1.0F;
         poseStack.translate(f * 0.125F, -0.125D, 0.0D);
         if (!player.isInvisible()) {
@@ -92,7 +92,7 @@ public abstract class ItemInHandRendererMixin {
     }
 
     @Unique
-    private void exposure$renderTwoHandedPhotograph(AbstractClientPlayer player, PoseStack poseStack, MultiBufferSource buffer, int packedLight, float pitch, float equippedProgress, float swingProgress) {
+    private void exposure$renderTwoHandedPhotograph(AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector buffer, int packedLight, float pitch, float equippedProgress, float swingProgress) {
         float f = Mth.sqrt(swingProgress);
         float f1 = -0.2F * Mth.sin(swingProgress * (float)Math.PI);
         float f2 = -0.4F * Mth.sin(f * (float)Math.PI);

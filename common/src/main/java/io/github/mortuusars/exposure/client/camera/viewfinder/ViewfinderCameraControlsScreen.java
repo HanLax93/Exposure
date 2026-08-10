@@ -21,7 +21,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageWidget;
 import net.minecraft.client.gui.components.Tooltip;
@@ -29,7 +29,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -53,7 +53,7 @@ public class ViewfinderCameraControlsScreen extends Screen {
             Exposure.resource("camera_controls/frame_counter_disabled"),
             Exposure.resource("camera_controls/frame_counter_highlighted"));
 
-    public static final ResourceLocation SEPARATOR_SPRITE = Exposure.resource("camera_controls/button_separator");
+    public static final Identifier SEPARATOR_SPRITE = Exposure.resource("camera_controls/button_separator");
 
     protected static final int SEPARATOR_WIDTH = 1;
     protected static final int BUTTON_HEIGHT = 18;
@@ -220,8 +220,7 @@ public class ViewfinderCameraControlsScreen extends Screen {
             if (keyMapping.key.getType() == InputConstants.Type.MOUSE) {
                 keyMapping.setDown(MouseHandler.isMouseButtonHeld(keyMapping.key.getValue()));
             } else {
-                long windowId = Minecraft.getInstance().getWindow().getWindow();
-                keyMapping.setDown(InputConstants.isKeyDown(windowId, keyMapping.key.getValue()));
+                keyMapping.setDown(InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), keyMapping.key.getValue()));
             }
         };
 
@@ -236,36 +235,39 @@ public class ViewfinderCameraControlsScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(@NotNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!viewfinder.isLookingThrough()) {
             this.onClose();
             return;
         }
 
-        if (Minecrft.options().hideGui) return;
+        if (Minecrft.get().gui.hud.isHidden()) return;
 
-        guiGraphics.pose().pushPose();
+        guiGraphics.pose().pushMatrix();
 
         float viewfinderScale = viewfinder.overlay().getScale();
         if (viewfinderScale != 1.0f) {
-            guiGraphics.pose().translate(width / 2f, height / 2f, 0);
-            guiGraphics.pose().scale(viewfinderScale, viewfinderScale, viewfinderScale);
-            guiGraphics.pose().translate(-width / 2f, -height / 2f, 0);
+            guiGraphics.pose().translate(width / 2f, height / 2f);
+            guiGraphics.pose().scale(viewfinderScale, viewfinderScale);
+            guiGraphics.pose().translate(-width / 2f, -height / 2f);
         }
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Prevents blur from rendering.
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(mouseX, mouseY, button)) return true;
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
+        if (super.mouseClicked(event, doubleClick)) return true;
 
         if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
             if (camera.isActive()) {
@@ -279,8 +281,11 @@ public class ViewfinderCameraControlsScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (KeyboardHandler.getCameraControlsKey().matchesMouse(button)
+    public boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
+        if (KeyboardHandler.getCameraControlsKey().matchesMouse(event)
                 || (Config.Client.VIEWFINDER_MIDDLE_CLICK_CONTROLS.get() && button == InputConstants.MOUSE_BUTTON_MIDDLE)) {
             if (isToggleTimeReached()) {
                 this.onClose();
@@ -289,12 +294,15 @@ public class ViewfinderCameraControlsScreen extends Screen {
             return false;
         }
 
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (super.mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
+        if (super.mouseDragged(event, dragX, dragY)) return true;
 
         if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
 
@@ -317,15 +325,18 @@ public class ViewfinderCameraControlsScreen extends Screen {
     }
 
     @Override
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        if (KeyboardHandler.getCameraControlsKey().matches(keyCode, scanCode)) {
+    public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
+        if (KeyboardHandler.getCameraControlsKey().matches(event)) {
             if (isToggleTimeReached())
                 this.onClose();
 
             return false;
         }
 
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(event);
     }
 
     protected boolean isToggleTimeReached() {
@@ -333,8 +344,11 @@ public class ViewfinderCameraControlsScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (super.keyPressed(keyCode, scanCode, modifiers)) return true;
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
+        if (super.keyPressed(event)) return true;
 
         if (keyCode == InputConstants.KEY_ADD || keyCode == InputConstants.KEY_EQUALS) {
             viewfinder.zoom().zoom(ZoomDirection.IN, true);

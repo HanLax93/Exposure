@@ -6,31 +6,66 @@ import io.github.mortuusars.exposure.ExposureClient;
 import io.github.mortuusars.exposure.client.image.renderable.RenderableImage;
 import io.github.mortuusars.exposure.client.render.image.RenderCoordinates;
 import io.github.mortuusars.exposure.client.render.texture.TextureRenderer;
+import io.github.mortuusars.exposure.util.color.Color;
 import io.github.mortuusars.exposure.world.item.PhotographItem;
 import io.github.mortuusars.exposure.world.item.StackedPhotographsItem;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
 import io.github.mortuusars.exposure.world.item.util.ItemAndStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
 public class PhotographRenderer {
-    public boolean render(ItemStack itemStack, boolean renderPaper, boolean renderBackside, PoseStack poseStack,
-                              MultiBufferSource bufferSource, int packedLight) {
-        return render(itemStack, renderPaper, renderBackside, poseStack, bufferSource, packedLight, 255, 255, 255, 255);
-    }
+    public boolean extractStackedPhotographs(List<ItemAndStack<PhotographItem>> photographs,
+                                             GuiGraphicsExtractor graphics, Color color) {
+        if (photographs.isEmpty()) return false;
 
-    public boolean render(ItemStack itemStack, boolean renderPaper, boolean renderBackside, PoseStack poseStack,
-                              MultiBufferSource bufferSource, int packedLight, int r, int g, int b, int a) {
-        if (itemStack.getItem() instanceof PhotographItem photographItem)
-            return renderPhotograph(poseStack, bufferSource, photographItem, itemStack, renderPaper, renderBackside, packedLight, r, g, b, a);
-        else if (itemStack.getItem() instanceof StackedPhotographsItem stackedPhotographsItem)
-            return renderStackedPhotographs(stackedPhotographsItem, itemStack, poseStack, bufferSource, packedLight, r, g, b, a);
+        for (int i = Math.min(2, photographs.size() - 1); i >= 0; i--) {
+            ItemAndStack<PhotographItem> photograph = photographs.get(i);
+            PhotographStyle style = PhotographStyle.of(photograph.getItemStack());
+            float offset = getStackedPhotographOffset() * i;
+
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(offset, offset);
+            if (style.paperTexture() != ExposureClient.Textures.EMPTY) {
+                graphics.blit(style.paperTexture(), 0, 0, 1, 1, 0, 1, 1, 0);
+                // GUI elements in 26.2 are batched within a stratum. Keep the dynamic
+                // photograph texture in a later stratum so the paper cannot be sorted
+                // and rendered over it.
+                graphics.nextStratum();
+            }
+
+            if (i == 0) {
+                Frame frame = photograph.getItem().getFrame(photograph.getItemStack());
+                RenderableImage image = style.process(ExposureClient.renderedExposures().getOrCreate(frame));
+                graphics.pose().translate(0.0625f, 0.0625f);
+                graphics.pose().scale(0.875f, 0.875f);
+                ExposureClient.imageRenderer().extract(image, graphics, RenderCoordinates.DEFAULT, color);
+                graphics.pose().popMatrix();
+                return !image.isEmpty();
+            }
+            graphics.pose().popMatrix();
+        }
         return false;
     }
 
-    public boolean renderPhotograph(PoseStack poseStack, MultiBufferSource bufferSource,
+    public boolean render(ItemStack itemStack, boolean renderPaper, boolean renderBackside, PoseStack poseStack,
+                              SubmitNodeCollector collector, int packedLight) {
+        return render(itemStack, renderPaper, renderBackside, poseStack, collector, packedLight, 255, 255, 255, 255);
+    }
+
+    public boolean render(ItemStack itemStack, boolean renderPaper, boolean renderBackside, PoseStack poseStack,
+                              SubmitNodeCollector collector, int packedLight, int r, int g, int b, int a) {
+        if (itemStack.getItem() instanceof PhotographItem photographItem)
+            return renderPhotograph(poseStack, collector, photographItem, itemStack, renderPaper, renderBackside, packedLight, r, g, b, a);
+        else if (itemStack.getItem() instanceof StackedPhotographsItem stackedPhotographsItem)
+            return renderStackedPhotographs(stackedPhotographsItem, itemStack, poseStack, collector, packedLight, r, g, b, a);
+        return false;
+    }
+
+    public boolean renderPhotograph(PoseStack poseStack, SubmitNodeCollector collector,
                                         PhotographItem photographItem, ItemStack photographStack,
                                         boolean renderPaper, boolean renderBackside, int packedLight, int r, int g, int b, int a) {
 
@@ -48,7 +83,7 @@ public class PhotographRenderer {
             poseStack.mulPose(Axis.ZP.rotationDegrees(paperRotation));
             poseStack.translate(-0.5f, -0.5f, 0);
 
-            TextureRenderer.render(poseStack, bufferSource, style.paperTexture(), packedLight, r, g, b, a);
+            TextureRenderer.render(poseStack, collector, style.paperTexture(), packedLight, r, g, b, a);
 
             poseStack.popPose();
 
@@ -61,7 +96,7 @@ public class PhotographRenderer {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(paperRotation));
                 poseStack.translate(-0.5f, -0.5f, 0);
 
-                TextureRenderer.render(poseStack, bufferSource, style.paperTexture(),
+                TextureRenderer.render(poseStack, collector, style.paperTexture(),
                         packedLight, (int) (r * 0.85f), (int) (g * 0.85f), (int) (b * 0.85f), a);
 
                 poseStack.popPose();
@@ -73,10 +108,10 @@ public class PhotographRenderer {
             float offset = 0.0625f;
             poseStack.translate(offset, offset, 0.001);
             poseStack.scale(0.875f, 0.875f, 0.875f);
-            ExposureClient.imageRenderer().render(image, poseStack, bufferSource, RenderCoordinates.DEFAULT, packedLight, r, g, b, a);
+            ExposureClient.imageRenderer().render(image, poseStack, collector, RenderCoordinates.DEFAULT, packedLight, r, g, b, a);
             poseStack.popPose();
         } else {
-            ExposureClient.imageRenderer().render(image, poseStack, bufferSource, RenderCoordinates.DEFAULT, packedLight, r, g, b, a);
+            ExposureClient.imageRenderer().render(image, poseStack, collector, RenderCoordinates.DEFAULT, packedLight, r, g, b, a);
         }
 
         if (renderPaper && style.hasOverlayTexture()) {
@@ -87,7 +122,7 @@ public class PhotographRenderer {
             poseStack.translate(-0.5f, -0.5f, 0);
 
             poseStack.translate(0, 0, 0.002);
-            TextureRenderer.render(poseStack, bufferSource, style.overlayTexture(), packedLight, r, g, b, a);
+            TextureRenderer.render(poseStack, collector, style.overlayTexture(), packedLight, r, g, b, a);
             poseStack.popPose();
         }
 
@@ -95,14 +130,14 @@ public class PhotographRenderer {
     }
 
     public boolean renderStackedPhotographs(StackedPhotographsItem stackedPhotographsItem, ItemStack stack,
-                                                PoseStack poseStack, MultiBufferSource bufferSource,
+                                                PoseStack poseStack, SubmitNodeCollector collector,
                                                 int packedLight, int r, int g, int b, int a) {
         List<ItemAndStack<PhotographItem>> photographs = stackedPhotographsItem.getPhotographs(stack).photographsItemAndStacks();
-        return renderStackedPhotographs(photographs, poseStack, bufferSource, packedLight, r, g, b, a);
+        return renderStackedPhotographs(photographs, poseStack, collector, packedLight, r, g, b, a);
     }
 
     public boolean renderStackedPhotographs(List<ItemAndStack<PhotographItem>> photographs,
-                                                PoseStack poseStack, MultiBufferSource bufferSource,
+                                                PoseStack poseStack, SubmitNodeCollector collector,
                                                 int packedLight, int r, int g, int b, int a) {
         if (photographs.isEmpty()) return false;
 
@@ -118,7 +153,7 @@ public class PhotographRenderer {
             if (i == 0) {
                 poseStack.pushPose();
                 poseStack.translate(0, 0, 0.002);
-                photographRendered = renderPhotograph(poseStack, bufferSource, photograph.getItem(), photograph.getItemStack(),
+                photographRendered = renderPhotograph(poseStack, collector, photograph.getItem(), photograph.getItemStack(),
                         true, false, packedLight, r, g, b, a);
                 poseStack.popPose();
                 break;
@@ -142,7 +177,7 @@ public class PhotographRenderer {
 
             PhotographStyle photographStyle = PhotographStyle.of(photograph.getItemStack());
 
-            TextureRenderer.render(poseStack, bufferSource, photographStyle.paperTexture(),
+            TextureRenderer.render(poseStack, collector, photographStyle.paperTexture(),
                     packedLight, (int)(r * brightness), (int)(g * brightness), (int)(b * brightness), a);
 
             poseStack.popPose();

@@ -1,16 +1,12 @@
 package io.github.mortuusars.exposure.client.util;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.systems.RenderSystem;
-import io.github.mortuusars.exposure.Exposure;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import io.github.mortuusars.exposure.client.camera.CameraClient;
 import io.github.mortuusars.exposure.client.capture.CaptureShader;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 
 public class Shader {
     private static boolean suppressViewfinder = false;
@@ -22,22 +18,7 @@ public class Shader {
      * Main use for this is to apply a shader when capturing a photograph.
      */
     public static void process(@NotNull PostChain shader, @NotNull RenderTarget renderTarget) {
-        try {
-            ResourceLocation shaderLocation = ResourceLocation.parse(shader.getName());
-
-            PostChain tempShader = new PostChain(Minecrft.get().getTextureManager(), Minecrft.get().getResourceManager(),
-                    renderTarget, shaderLocation);
-            tempShader.resize(renderTarget.width, renderTarget.height);
-
-            RenderSystem.disableBlend();
-            RenderSystem.disableDepthTest();
-            RenderSystem.resetTextureMatrix();
-            tempShader.process(Minecrft.get().getTimer().getGameTimeDeltaTicks());
-        } catch (IOException e) {
-            Exposure.LOGGER.warn("Failed to load shader: {}", shader.getName(), e);
-        } catch (JsonSyntaxException e) {
-            Exposure.LOGGER.warn("Failed to parse shader: {}", shader.getName(), e);
-        }
+        shader.process(renderTarget, GraphicsResourceAllocator.UNPOOLED);
     }
 
     public static void setSuppressViewfinder(boolean suppress) {

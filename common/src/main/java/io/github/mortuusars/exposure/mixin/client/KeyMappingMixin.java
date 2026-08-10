@@ -21,7 +21,7 @@ public abstract class KeyMappingMixin {
     @Inject(method = "isDown", at = @At(value = "HEAD"), cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
         if (CameraClient.viewfinder() != null
-                && CameraClient.viewfinder().controlsScreen().map(screen -> screen == Minecrft.get().screen).orElse(false)) {
+                && CameraClient.viewfinder().controlsScreen().map(screen -> screen == Minecrft.get().gui.screen()).orElse(false)) {
             cir.setReturnValue(this.isDown);
         }
     }

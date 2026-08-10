@@ -7,12 +7,14 @@ public class HideGuiAction implements CaptureAction {
 
     @Override
     public void beforeCapture() {
-        hideGuiBeforeCapture = Minecraft.getInstance().options.hideGui;
-        Minecraft.getInstance().options.hideGui = true;
+        hideGuiBeforeCapture = Minecraft.getInstance().gui.hud.isHidden();
+        if (!hideGuiBeforeCapture) Minecraft.getInstance().gui.hud.toggle();
     }
 
     @Override
     public void afterCapture() {
-        Minecraft.getInstance().options.hideGui = hideGuiBeforeCapture;
+        if (Minecraft.getInstance().gui.hud.isHidden() != hideGuiBeforeCapture) {
+            Minecraft.getInstance().gui.hud.toggle();
+        }
     }
 }

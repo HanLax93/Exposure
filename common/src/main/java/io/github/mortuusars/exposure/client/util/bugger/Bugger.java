@@ -9,11 +9,13 @@ import io.github.mortuusars.exposure.client.gui.screen.test.TestImageScreen;
 import io.github.mortuusars.exposure.client.util.Minecrft;
 import io.github.mortuusars.exposure.mixin.client.BuggerScreenRenderLinesInvoker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -58,41 +60,41 @@ public class Bugger {
     }
 
     private static void test() {
-        Minecrft.get().setScreen(new TestImageScreen());
+        Minecrft.get().gui.setScreen(new TestImageScreen());
     }
 
     // --
 
     private static void up() {
-        if (Screen.hasControlDown()) {
-            boolean shift = Screen.hasShiftDown();
+        if (Minecrft.get().hasControlDown()) {
+            boolean shift = Minecrft.get().hasShiftDown();
             zoom = shift ? zoom + 5 : zoom + 1;
         } else {
-            boolean shift = Screen.hasShiftDown();
+            boolean shift = Minecrft.get().hasShiftDown();
             scroll = Math.max(shift ? scroll - 5 : scroll - 1, 0);
         }
     }
 
     private static void down() {
-        if (Screen.hasControlDown()) {
-            boolean shift = Screen.hasShiftDown();
+        if (Minecrft.get().hasControlDown()) {
+            boolean shift = Minecrft.get().hasShiftDown();
             zoom = shift ? zoom - 5 : zoom - 1;
         } else {
-            boolean shift = Screen.hasShiftDown();
+            boolean shift = Minecrft.get().hasShiftDown();
             scroll = Math.max(shift ? scroll + 5 : scroll + 1, 0);
         }
     }
 
-    public static void renderMainPage(GuiGraphics guiGraphics) {
+    public static void renderMainPage(GuiGraphicsExtractor guiGraphics) {
         float scale = (zoom + 100) / 100f;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(scale, scale);
         List<String> leftLines = collectLeftLines().stream().skip(scroll).toList();
         ((BuggerScreenRenderLinesInvoker) Minecraft.getInstance().getDebugOverlay()).drawLines(guiGraphics, leftLines, true);
         List<String> rightLines = collectRightLines().stream().skip(scroll).toList();
         ((BuggerScreenRenderLinesInvoker) Minecraft.getInstance().getDebugOverlay()).drawLines(guiGraphics, rightLines, false);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     private static List<String> collectLeftLines() {
@@ -124,7 +126,7 @@ public class Bugger {
         return ret;
     }
 
-    public static void renderTagPage(GuiGraphics guiGraphics) {
+    public static void renderTagPage(GuiGraphicsExtractor guiGraphics) {
         List<String> tagLines = getTagPageLines();
 
         int maxScroll = Math.max(tagLines.size() - 8, 0);
@@ -134,10 +136,10 @@ public class Bugger {
 
         float scale = (zoom + 100) / 100f;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().scale(scale, scale, scale);
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(scale, scale);
         ((BuggerScreenRenderLinesInvoker) Minecrft.get().getDebugOverlay()).drawLines(guiGraphics, lines, true);
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
     }
 
     private static @NotNull List<String> getTagPageLines() {
@@ -175,8 +177,10 @@ public class Bugger {
         } else if (hitResult instanceof EntityHitResult entityHitResult) {
             Entity entity = entityHitResult.getEntity();
 
-            CompoundTag entityTag = new CompoundTag();
-            entity.save(entityTag);
+            TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,
+                    Minecrft.level().registryAccess());
+            entity.save(output);
+            CompoundTag entityTag = output.buildResult();
 
             JsonElement json = CompoundTag.CODEC.encodeStart(JsonOps.INSTANCE, entityTag).result().orElse(new JsonObject());
 

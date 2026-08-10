@@ -1,40 +1,32 @@
 package io.github.mortuusars.exposure.client.capture.action;
 
 import io.github.mortuusars.exposure.client.util.Minecrft;
-import net.minecraft.client.renderer.PostChain;
-import net.minecraft.resources.ResourceLocation;
+import io.github.mortuusars.exposure.client.capture.CaptureShader;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class SetPostEffectAction implements CaptureAction {
     @Nullable
-    private ResourceLocation currentEffect;
-    private boolean effectActive;
+    private Identifier currentEffect;
 
-    private final ResourceLocation effect;
+    private final Identifier effect;
 
-    public SetPostEffectAction(ResourceLocation effect) {
+    public SetPostEffectAction(Identifier effect) {
         this.effect = effect;
     }
 
     @Override
     public void beforeCapture() {
-        PostChain currentEffect = Minecrft.get().gameRenderer.currentEffect();
-        if (currentEffect != null) {
-            this.currentEffect = ResourceLocation.parse(currentEffect.getName());
-        }
-        this.effectActive = Minecrft.get().gameRenderer.effectActive;
-
-        Minecrft.get().gameRenderer.loadEffect(effect);
-        Minecrft.get().gameRenderer.effectActive = true;
+        currentEffect = CaptureShader.currentLocation();
+        CaptureShader.apply(effect);
     }
 
     @Override
     public void afterCapture() {
-        Minecrft.get().gameRenderer.effectActive = effectActive;
         if (currentEffect != null) {
-            Minecrft.get().gameRenderer.loadEffect(currentEffect);
+            CaptureShader.apply(currentEffect);
         } else {
-            Minecrft.get().gameRenderer.shutdownEffect();
+            CaptureShader.remove();
         }
     }
 }

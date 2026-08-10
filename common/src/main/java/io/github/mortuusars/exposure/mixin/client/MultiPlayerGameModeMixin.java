@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MultiPlayerGameModeMixin {
     @Shadow public abstract InteractionResult useItem(Player player, InteractionHand hand);
 
-    @Inject(method = "interactAt", at = @At(value = "INVOKE",
+    @Inject(method = "interact", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/phys/EntityHitResult;getLocation()Lnet/minecraft/world/phys/Vec3;"),
             cancellable = true)
     void onInteractAt(Player player, Entity target, EntityHitResult ray, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {

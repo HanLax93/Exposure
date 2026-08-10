@@ -27,7 +27,7 @@ public class Viewfinder {
           Key.press(Minecrft.options().keyAttack).executes(() -> !canAttack()),
           Key.press(Minecrft.options().keyTogglePerspective).executes(() -> selfie().toggle()),
           Key.press(Minecrft.options().keyInventory).or(Key.press(InputConstants.KEY_ESCAPE)).executes(() -> {
-              if (Minecrft.get().screen instanceof ViewfinderCameraControlsScreen viewfinderControlsScreen) {
+              if (Minecrft.get().gui.screen() instanceof ViewfinderCameraControlsScreen viewfinderControlsScreen) {
                   viewfinderControlsScreen.onClose();
                   controlsScreen = null;
               } else {
@@ -111,7 +111,7 @@ public class Viewfinder {
     }
 
     public boolean controlsActive() {
-        return Minecrft.get().screen instanceof ViewfinderCameraControlsScreen;
+        return Minecrft.get().gui.screen() instanceof ViewfinderCameraControlsScreen;
     }
 
     public boolean canAttack() {
@@ -123,7 +123,7 @@ public class Viewfinder {
     public void openControlsScreen() {
         Preconditions.checkNotNull(camera, "No active camera");
         controlsScreen = createControlsScreen(camera);
-        Minecrft.get().setScreen(controlsScreen);
+        Minecrft.get().gui.setScreen(controlsScreen);
     }
 
     public void close() {
@@ -132,13 +132,14 @@ public class Viewfinder {
         }
 
         if (controlsActive()) {
-            Minecrft.get().setScreen(null);
+            Minecrft.get().gui.setScreen(null);
         }
     }
 
     public boolean keyPressed(int key, int scanCode, int action, int modifiers) {
-        return (action == InputConstants.PRESS && keyBindings.keyPressed(key, scanCode, modifiers))
-              || (action == InputConstants.RELEASE && keyBindings.keyReleased(key, scanCode, modifiers))
+        net.minecraft.client.input.KeyEvent event = new net.minecraft.client.input.KeyEvent(key, scanCode, modifiers);
+        return (action == InputConstants.PRESS && keyBindings.keyPressed(event))
+              || (action == InputConstants.RELEASE && keyBindings.keyReleased(event))
               || zoom().keyPressed(key, scanCode, action, modifiers);
     }
 
@@ -149,10 +150,10 @@ public class Viewfinder {
 
         if (controlsActive()) return false;
 
-        if (!canAttack() && Minecrft.options().keyAttack.matchesMouse(button))
+        if (!canAttack() && Minecrft.options().keyAttack.matches(InputConstants.Type.MOUSE.getOrCreate(button)))
             return true; // Block attacks
 
-        if (KeyboardHandler.getCameraControlsKey().matchesMouse(button)) {
+        if (KeyboardHandler.getCameraControlsKey().matches(InputConstants.Type.MOUSE.getOrCreate(button))) {
             openControlsScreen();
             return false; // Do not cancel the event to keep sneaking
         }

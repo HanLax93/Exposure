@@ -1,7 +1,7 @@
 package io.github.mortuusars.exposure.client.image.modifier.pixel;
 
 import io.github.mortuusars.exposure.util.color.Color;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 
 public class AgedHSBEffect implements PixelEffect {
@@ -28,11 +28,11 @@ public class AgedHSBEffect implements PixelEffect {
         return "aged";
     }
 
-    public int modify(int ARGB) {
-        int alpha = FastColor.ARGB32.alpha(ARGB);
-        int red = FastColor.ARGB32.red(ARGB);
-        int green = FastColor.ARGB32.green(ARGB);
-        int blue = FastColor.ARGB32.blue(ARGB);
+    public int modify(int argb) {
+        int alpha = ARGB.alpha(argb);
+        int red = ARGB.red(argb);
+        int green = ARGB.green(argb);
+        int blue = ARGB.blue(argb);
 
         // Modify black and white points to make the image appear faded:
         red = (int) Mth.map(red, 0, 255, blackPoint, whitePoint);
@@ -43,18 +43,18 @@ public class AgedHSBEffect implements PixelEffect {
         Color.HSB.RGBtoHSB(red, green, blue, baseHSB);
 
         float[] tintHSB = new float[3];
-        Color.HSB.RGBtoHSB(FastColor.ARGB32.red(tintColor), FastColor.ARGB32.green(tintColor), FastColor.ARGB32.blue(tintColor), tintHSB);
+        Color.HSB.RGBtoHSB(ARGB.red(tintColor), ARGB.green(tintColor), ARGB.blue(tintColor), tintHSB);
 
         // Luma is brighter than it would have been originally, but brighter looks better.
         int luma = Mth.clamp((int) (0.45 * red + 0.65 * green + 0.2 * blue), 0, 255);
         int tintedRGB = Color.HSB.HSBtoRGB(tintHSB[0], tintHSB[1], luma / 255f);
 
         // Blend two colors together:
-        int newBlue = Mth.clamp((int) Mth.lerp(tintOpacity, blue, FastColor.ARGB32.blue(tintedRGB)), 0, 255);
-        int newGreen = Mth.clamp((int) Mth.lerp(tintOpacity, green, FastColor.ARGB32.green(tintedRGB)), 0, 255);
-        int newRed = Mth.clamp((int) Mth.lerp(tintOpacity, red, FastColor.ARGB32.red(tintedRGB)), 0, 255);
+        int newBlue = Mth.clamp((int) Mth.lerp(tintOpacity, blue, ARGB.blue(tintedRGB)), 0, 255);
+        int newGreen = Mth.clamp((int) Mth.lerp(tintOpacity, green, ARGB.green(tintedRGB)), 0, 255);
+        int newRed = Mth.clamp((int) Mth.lerp(tintOpacity, red, ARGB.red(tintedRGB)), 0, 255);
 
-        return FastColor.ARGB32.color(alpha, newRed, newGreen, newBlue);
+        return ARGB.color(alpha, newRed, newGreen, newBlue);
     }
 
     @Override

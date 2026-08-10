@@ -1,108 +1,72 @@
 package io.github.mortuusars.exposure.client.util;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import io.github.mortuusars.exposure.util.Rect2f;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 
 public class GuiUtil {
-    public static void blit(PoseStack poseStack, Rect2f rect,
-                            int u, int v, int textureWidth, int textureHeight, float zOffset) {
-        blit(null, poseStack, rect, u, v, textureWidth, textureHeight, zOffset);
+    /**
+     * Packs the old shader-color values into the 8-bit tint used by 26.2 GUI
+     * rendering. Values above 1 are normalized together instead of individually
+     * clamped, preserving their channel ratios (for example 1.2/.96/.75 becomes
+     * 1/.8/.625 rather than 1/.96/.75).
+     */
+    public static int normalizedTint(float red, float green, float blue, float alpha) {
+        float scale = Math.max(1.0F, Math.max(red, Math.max(green, blue)));
+        return ARGB.colorFromFloat(
+                Mth.clamp(alpha, 0.0F, 1.0F),
+                Mth.clamp(red / scale, 0.0F, 1.0F),
+                Mth.clamp(green / scale, 0.0F, 1.0F),
+                Mth.clamp(blue / scale, 0.0F, 1.0F));
     }
 
-    public static void blit(@Nullable ResourceLocation texture, PoseStack poseStack, Rect2f rect,
-                            int u, int v, int textureWidth, int textureHeight, float zOffset) {
-        blit(texture, poseStack, rect.x, rect.y, rect.width, rect.height, u, v, textureWidth, textureHeight, zOffset);
+    public static void blit(GuiGraphicsExtractor graphics, Identifier texture, int x, int y,
+                            int u, int v, int width, int height) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, 256, 256);
     }
 
-    public static void blit(PoseStack poseStack, float x, float y, float width, float height,
-                            int u, int v, int textureWidth, int textureHeight, float zOffset) {
-        blit(null, poseStack, x, y, width, height, u, v, textureWidth, textureHeight, zOffset);
+    public static void blit(GuiGraphicsExtractor graphics, Identifier texture, int x, int y,
+                            int u, int v, int width, int height, int textureWidth, int textureHeight) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, textureWidth, textureHeight);
     }
 
-    public static void blit(@Nullable ResourceLocation texture, PoseStack poseStack, float x, float y, float width, float height,
-                            int u, int v, int textureWidth, int textureHeight, float zOffset) {
-        blit(texture, poseStack, x, x + width, y, y + height, zOffset,
-                u / (float)textureWidth, (u + width) / (float)textureWidth,
-                v / (float)textureHeight, (v + height) / (float)textureHeight);
+    public static void blitColored(GuiGraphicsExtractor graphics, Identifier texture, int x, int y,
+                                   int u, int v, int width, int height, int textureWidth, int textureHeight, int color) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height,
+                textureWidth, textureHeight, color);
     }
 
-    public static void blit(PoseStack poseStack, float minX, float maxX, float minY, float maxY, float zOffset,
-                            float minU, float maxU, float minV, float maxV) {
-        blit(null, poseStack, minX, maxX, minY, maxY, zOffset, minU, maxU, minV, maxV);
+    public static void blit(GuiGraphicsExtractor graphics, Identifier texture, int x, int y, int ignoredZ,
+                            int u, int v, int width, int height, int textureWidth, int textureHeight) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, textureWidth, textureHeight);
     }
 
-    private static void blit(@Nullable ResourceLocation texture, PoseStack poseStack,
-                             float minX, float maxX, float minY, float maxY, float zOffset,
-                             float minU, float maxU, float minV, float maxV) {
-        if (texture != null) {
-            RenderSystem.setShaderTexture(0, texture);
-        }
-
-        Matrix4f matrix = poseStack.last().pose();
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferBuilder.addVertex(matrix, minX, maxY, zOffset).setUv(minU, maxV);
-        bufferBuilder.addVertex(matrix, maxX, maxY, zOffset).setUv(maxU, maxV);
-        bufferBuilder.addVertex(matrix, maxX, minY, zOffset).setUv(maxU, minV);
-        bufferBuilder.addVertex(matrix, minX, minY, zOffset).setUv(minU, minV);
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
-    }
-
-    // --
-
-    public static void drawRect(GuiGraphics guiGraphics, Rect2f rect, int color) {
+    public static void drawRect(GuiGraphicsExtractor guiGraphics, Rect2f rect, int color) {
         drawRect(guiGraphics, rect.x, rect.y, rect.width, rect.height, color);
     }
 
-    public static void drawRect(GuiGraphics guiGraphics, float x, float y, float width, float height, int color) {
-        drawRect(guiGraphics.pose(), x, y, x + width, y + height, color);
-    }
-
-    public static void drawRect(PoseStack poseStack, float minX, float minY, float maxX, float maxY, int color) {
-        if (minX < maxX) {
-            float temp = minX;
-            minX = maxX;
-            maxX = temp;
-        }
-
-        if (minY < maxY) {
-            float temp = minY;
-            minY = maxY;
-            maxY = temp;
-        }
-
-        Matrix4f matrix = poseStack.last().pose();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferBuilder.addVertex(matrix, minX, maxY, 0).setColor(color);
-        bufferBuilder.addVertex(matrix, maxX, maxY, 0).setColor(color);
-        bufferBuilder.addVertex(matrix, maxX, minY, 0).setColor(color);
-        bufferBuilder.addVertex(matrix, minX, minY, 0).setColor(color);
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+    public static void drawRect(GuiGraphicsExtractor guiGraphics, float x, float y, float width, float height, int color) {
+        guiGraphics.fill(Mth.floor(x), Mth.floor(y), Mth.ceil(x + width), Mth.ceil(y + height), color);
     }
 
     // --
 
-    public static void renderScrollingString(GuiGraphics guiGraphics, Font font, Component text, int x, int y, int width, int color) {
+    public static void renderScrollingString(GuiGraphicsExtractor guiGraphics, Font font, Component text, int x, int y, int width, int color) {
         renderScrollingString(guiGraphics, font, text, x, y, x + width, y + font.lineHeight, color);
     }
 
-    public static void renderScrollingString(GuiGraphics guiGraphics, Font font, Component text, int minX, int minY, int maxX, int maxY, int color) {
+    public static void renderScrollingString(GuiGraphicsExtractor guiGraphics, Font font, Component text, int minX, int minY, int maxX, int maxY, int color) {
         renderScrollingString(guiGraphics, font, text, (minX + maxX) / 2, minX, minY, maxX, maxY, color);
     }
 
     // Doesn't work in toast for some reason.
-    public static void renderScrollingString(GuiGraphics guiGraphics, Font font, Component text, int centerX, int minX, int minY, int maxX, int maxY, int color) {
+    public static void renderScrollingString(GuiGraphicsExtractor guiGraphics, Font font, Component text, int centerX, int minX, int minY, int maxX, int maxY, int color) {
         int fontWidth = font.width(text);
         int y = (minY + maxY - 9) / 2 + 1;
         int width = maxX - minX;
@@ -113,11 +77,11 @@ public class GuiUtil {
             double f = Math.sin((Math.PI / 2) * Math.cos((Math.PI * 2) * d / e)) / 2.0 + 0.5;
             double g = Mth.lerp(f, 0.0, remaining);
             guiGraphics.enableScissor(minX, minY, maxX, maxY);
-            guiGraphics.drawString(font, text, minX - (int)g, y, color, false);
+            guiGraphics.text(font, text, minX - (int)g, y, color, false);
             guiGraphics.disableScissor();
         } else {
             int l = Mth.clamp(centerX, minX + fontWidth / 2, maxX - fontWidth / 2);
-            guiGraphics.drawCenteredString(font, text, l, y, color);
+            guiGraphics.centeredText(font, text, l, y, color);
         }
     }
 }
