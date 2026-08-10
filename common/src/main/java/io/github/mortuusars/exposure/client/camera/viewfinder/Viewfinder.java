@@ -10,6 +10,7 @@ import io.github.mortuusars.exposure.world.camera.Camera;
 import io.github.mortuusars.exposure.world.item.camera.CameraItem;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,6 +115,11 @@ public class Viewfinder {
         return Minecrft.get().gui.screen() instanceof ViewfinderCameraControlsScreen;
     }
 
+    public boolean isSuspendedByScreen() {
+        Screen screen = Minecrft.get().gui.screen();
+        return screen != null && !(screen instanceof ViewfinderCameraControlsScreen);
+    }
+
     public boolean canAttack() {
         return Minecrft.get().getCurrentServer() != null
               && Config.Server.CAMERA_VIEWFINDER_ATTACK.get()
@@ -137,6 +143,10 @@ public class Viewfinder {
     }
 
     public boolean keyPressed(int key, int scanCode, int action, int modifiers) {
+        if (isSuspendedByScreen()) {
+            return false;
+        }
+
         net.minecraft.client.input.KeyEvent event = new net.minecraft.client.input.KeyEvent(key, scanCode, modifiers);
         return (action == InputConstants.PRESS && keyBindings.keyPressed(event))
               || (action == InputConstants.RELEASE && keyBindings.keyReleased(event))
@@ -144,7 +154,7 @@ public class Viewfinder {
     }
 
     public boolean mouseClicked(int button, int action) {
-        if (!isLookingThrough()) {
+        if (!isLookingThrough() || isSuspendedByScreen()) {
             return false;
         }
 
@@ -167,14 +177,14 @@ public class Viewfinder {
     }
 
     public boolean mouseScrolled(double amount) {
-        if (isLookingThrough() && !controlsActive()) {
+        if (isLookingThrough() && !controlsActive() && !isSuspendedByScreen()) {
             return zoom.mouseScrolled(amount);
         }
         return false;
     }
 
     public double modifyMouseSensitivity(double original) {
-        if (!isLookingThrough()) {
+        if (!isLookingThrough() || isSuspendedByScreen()) {
             return original;
         }
 

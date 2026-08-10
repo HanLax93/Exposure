@@ -18,7 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GuiMixin {
     @Inject(method = "extractRenderState", at = @At(value = "HEAD"), cancellable = true)
     private void renderGui(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (CameraClient.viewfinder() != null && CameraClient.viewfinder().isLookingThrough()) {
+        if (CameraClient.viewfinder() != null && CameraClient.viewfinder().isLookingThrough()
+                && !CameraClient.viewfinder().isSuspendedByScreen()) {
             CameraClient.viewfinder().overlay().render(guiGraphics, deltaTracker);
             if (Config.Client.HIDE_HUD_WHILE_IN_VIEWFINDER.get()) {
                 ci.cancel();

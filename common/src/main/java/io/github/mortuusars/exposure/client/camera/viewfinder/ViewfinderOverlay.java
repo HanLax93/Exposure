@@ -92,7 +92,7 @@ public class ViewfinderOverlay {
 
         // opening and scale is updated even if overlay is not rendered - other classes may depend on them.
 
-        if (!viewfinder.isLookingThrough() || camera.isEmpty()) return;
+        if (!viewfinder.isLookingThrough() || viewfinder.isSuspendedByScreen() || camera.isEmpty()) return;
 
         final int width = Minecrft.get().getWindow().getGuiScaledWidth();
         final int height = Minecrft.get().getWindow().getGuiScaledHeight();
