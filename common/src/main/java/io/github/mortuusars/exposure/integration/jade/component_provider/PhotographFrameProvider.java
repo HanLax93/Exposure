@@ -2,7 +2,7 @@ package io.github.mortuusars.exposure.integration.jade.component_provider;
 
 import io.github.mortuusars.exposure.world.entity.PhotographFrameEntity;
 import io.github.mortuusars.exposure.integration.jade.ExposureJadePlugin;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IEntityComponentProvider;
@@ -22,7 +22,7 @@ public enum PhotographFrameProvider implements IEntityComponentProvider {
         }
     }
 
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return ExposureJadePlugin.PHOTOGRAPH_FRAME;
     }
 }

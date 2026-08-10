@@ -7,6 +7,7 @@ import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.PlatformHelper;
 import io.github.mortuusars.exposure.world.camera.ExposureType;
 import io.github.mortuusars.exposure.client.gui.screen.ItemRenameScreen;
+import io.github.mortuusars.exposure.client.gui.screen.LightroomScreen;
 import io.github.mortuusars.exposure.client.gui.screen.album.AlbumScreen;
 import io.github.mortuusars.exposure.integration.jei.category.PhotographPrintingCategory;
 import io.github.mortuusars.exposure.integration.jei.category.PhotographStackingCategory;
@@ -22,7 +23,7 @@ import mezz.jei.api.registration.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,10 +36,10 @@ public class ExposureJeiPlugin implements IModPlugin {
     public static final RecipeType<PhotographStackingJeiRecipe> PHOTOGRAPH_STACKING_RECIPE_TYPE =
             RecipeType.create(Exposure.ID, "photograph_stacking", PhotographStackingJeiRecipe.class);
 
-    private static final ResourceLocation ID = Exposure.resource("jei_plugin");
+    private static final Identifier ID = Exposure.resource("jei_plugin");
 
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
+    public @NotNull Identifier getPluginUid() {
         return ID;
     }
 
@@ -89,6 +90,17 @@ public class ExposureJeiPlugin implements IModPlugin {
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGenericGuiContainerHandler(LightroomScreen.class, new IGuiContainerHandler<LightroomScreen>() {
+            @Override
+            public @NotNull List<Rect2i> getGuiExtraAreas(@NotNull LightroomScreen containerScreen) {
+                // The film slot is rendered in a tab to the left of the vanilla
+                // container bounds. Tell JEI that it belongs to the GUI so its
+                // input handler does not classify clicks on the left half as
+                // clicks outside the container.
+                return List.of(containerScreen.getFilmSlotTabArea());
+            }
+        });
+
         registration.addGenericGuiContainerHandler(AlbumScreen.class, new IGuiContainerHandler<AlbumScreen>() {
             @Override
             public @NotNull List<Rect2i> getGuiExtraAreas(@NotNull AlbumScreen containerScreen) {

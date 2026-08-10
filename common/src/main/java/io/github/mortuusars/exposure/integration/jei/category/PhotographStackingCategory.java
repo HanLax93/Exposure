@@ -15,14 +15,15 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class PhotographStackingCategory implements IRecipeCategory<PhotographStackingJeiRecipe> {
-    private static final ResourceLocation TEXTURE = Exposure.resource("textures/gui/jei/photograph_stacking.png");
+    private static final Identifier TEXTURE = Exposure.resource("textures/gui/jei/photograph_stacking.png");
     private final Component title;
     private final IDrawable background;
     private final IDrawable icon;
@@ -75,6 +76,12 @@ public class PhotographStackingCategory implements IRecipeCategory<PhotographSta
     }
 
     @Override
+    public void draw(PhotographStackingJeiRecipe recipe, IRecipeSlotsView recipeSlotsView,
+                     GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics);
+    }
+
+    @Override
     public @NotNull RecipeType<PhotographStackingJeiRecipe> getRecipeType() {
         return ExposureJeiPlugin.PHOTOGRAPH_STACKING_RECIPE_TYPE;
     }
@@ -84,10 +91,14 @@ public class PhotographStackingCategory implements IRecipeCategory<PhotographSta
         return title;
     }
 
-    @SuppressWarnings("removal")
     @Override
-    public @NotNull IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return 109;
+    }
+
+    @Override
+    public int getHeight() {
+        return 38;
     }
 
     @Override

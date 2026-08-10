@@ -8,13 +8,12 @@ import io.github.mortuusars.exposure.integration.jade.ExposureJadePlugin;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.*;
 import snownee.jade.api.config.IPluginConfig;
-import snownee.jade.api.ui.IElementHelper;
+import snownee.jade.api.ui.JadeUI;
 import snownee.jade.api.view.*;
 
 import java.util.Collections;
@@ -27,47 +26,39 @@ public enum LightroomComponentProvider implements IBlockComponentProvider, IServ
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig iPluginConfig) {
         CompoundTag tag = accessor.getServerData();
 
-        if (tag.getBoolean("Empty"))
+        if (tag.getBooleanOr("Empty", false))
             return;
 
-        IElementHelper helper = IElementHelper.get();
+        tooltip.add(JadeUI.spacer(0, 0));
 
-        tooltip.add(helper.spacer(0, 0));
-
-        ItemStack film = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound("Film"));
+        ItemStack film = readStack(tag, "Film");
         if (!film.isEmpty()) {
-            tooltip.append(helper.item(film));
-            tooltip.append(helper.text(Component.literal("|").withStyle(ChatFormatting.GRAY))
-                    .size(new Vec2(11, 12))
-                    .translate(new Vec2(5, 6))
-                    .message(null));
+            tooltip.append(JadeUI.item(film));
+            tooltip.append(JadeUI.text(Component.literal("|").withStyle(ChatFormatting.GRAY)));
         }
 
-        ItemStack paper = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound("Paper"));
+        ItemStack paper = readStack(tag, "Paper");
         if (!paper.isEmpty()) {
-            tooltip.append(helper.item(paper));
-            tooltip.append(helper.text(Component.literal("+").withStyle(ChatFormatting.GRAY))
-                    .size(new Vec2(12, 12))
-                    .translate(new Vec2(5, 6))
-                    .message(null));
+            tooltip.append(JadeUI.item(paper));
+            tooltip.append(JadeUI.text(Component.literal("+").withStyle(ChatFormatting.GRAY)));
         }
 
         for (String dye : new String[] {"Cyan", "Yellow", "Magenta", "Black"}) {
-            ItemStack stack = ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound(dye));
+            ItemStack stack = readStack(tag, dye);
             if (!stack.isEmpty())
-                tooltip.append(helper.item(stack));
+                tooltip.append(JadeUI.item(stack));
         }
 
-        tooltip.append(helper.progress(tag.getFloat("Progress")));
+        tooltip.append(JadeUI.progressArrow(tag.getFloatOr("Progress", 0.0f)));
 
-        tooltip.append(helper.item(ItemStack.parseOptional(accessor.getLevel().registryAccess(), tag.getCompound("Result"))));
+        tooltip.append(JadeUI.item(readStack(tag, "Result")));
 
 
-        PrintingMode process = PrintingMode.fromStringOrDefault(tag.getString("Process"), PrintingMode.REGULAR);
+        PrintingMode process = PrintingMode.fromStringOrDefault(tag.getStringOr("Process", ""), PrintingMode.REGULAR);
         if (process != PrintingMode.REGULAR)
-            tooltip.add(helper.text(Component.translatable("gui.exposure.lightroom.printing_mode." + process.getSerializedName())));
+            tooltip.add(JadeUI.text(Component.translatable("gui.exposure.lightroom.printing_mode." + process.getSerializedName())));
 
-        tooltip.add(helper.spacer(0, 2));
+        tooltip.add(JadeUI.spacer(0, 2));
     }
 
     @Override
@@ -78,18 +69,26 @@ public enum LightroomComponentProvider implements IBlockComponentProvider, IServ
                 return;
             }
 
-            tag.put("Film", lightroomBlockEntity.getItem(Lightroom.FILM_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Paper", lightroomBlockEntity.getItem(Lightroom.PAPER_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Cyan", lightroomBlockEntity.getItem(Lightroom.CYAN_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Yellow", lightroomBlockEntity.getItem(Lightroom.YELLOW_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Magenta", lightroomBlockEntity.getItem(Lightroom.MAGENTA_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Black", lightroomBlockEntity.getItem(Lightroom.BLACK_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
-            tag.put("Result", lightroomBlockEntity.getItem(Lightroom.RESULT_SLOT).saveOptional(blockAccessor.getLevel().registryAccess()));
+            storeStack(tag, "Film", lightroomBlockEntity.getItem(Lightroom.FILM_SLOT));
+            storeStack(tag, "Paper", lightroomBlockEntity.getItem(Lightroom.PAPER_SLOT));
+            storeStack(tag, "Cyan", lightroomBlockEntity.getItem(Lightroom.CYAN_SLOT));
+            storeStack(tag, "Yellow", lightroomBlockEntity.getItem(Lightroom.YELLOW_SLOT));
+            storeStack(tag, "Magenta", lightroomBlockEntity.getItem(Lightroom.MAGENTA_SLOT));
+            storeStack(tag, "Black", lightroomBlockEntity.getItem(Lightroom.BLACK_SLOT));
+            storeStack(tag, "Result", lightroomBlockEntity.getItem(Lightroom.RESULT_SLOT));
 
             tag.putString("Process", lightroomBlockEntity.getActualPrintingMode().getSerializedName());
 
             tag.putFloat("Progress", lightroomBlockEntity.getProgressPercentage());
         }
+    }
+
+    private static ItemStack readStack(CompoundTag tag, String key) {
+        return tag.read(key, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+    }
+
+    private static void storeStack(CompoundTag tag, String key, ItemStack stack) {
+        tag.store(key, ItemStack.OPTIONAL_CODEC, stack);
     }
 
     @Override
@@ -98,12 +97,12 @@ public enum LightroomComponentProvider implements IBlockComponentProvider, IServ
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return ExposureJadePlugin.LIGHTROOM;
     }
 
     public static class EmptyItemStackExtensionProvider implements IServerExtensionProvider<ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
-        public static final ResourceLocation ID = Exposure.resource("empty");
+        public static final Identifier ID = Exposure.resource("empty");
 
         public static final EmptyItemStackExtensionProvider INSTANCE = new EmptyItemStackExtensionProvider();
 
@@ -117,7 +116,7 @@ public enum LightroomComponentProvider implements IBlockComponentProvider, IServ
         }
 
         @Override
-        public ResourceLocation getUid() {
+        public Identifier getUid() {
             return ID;
         }
 
