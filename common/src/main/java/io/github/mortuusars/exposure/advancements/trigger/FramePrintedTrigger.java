@@ -4,7 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.exposure.advancements.predicate.FramePredicate;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
-import net.minecraft.advancements.critereon.*;
+import net.minecraft.advancements.predicates.ContextAwarePredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.predicates.LocationPredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +33,7 @@ public class FramePrintedTrigger extends SimpleCriterionTrigger<FramePrintedTrig
     public record TriggerInstance(Optional<ContextAwarePredicate> player,
                                   Optional<LocationPredicate> location,
                                   Optional<FramePredicate> frame,
-                                  Optional<ItemPredicate> item) implements SimpleInstance {
+                                  Optional<ItemPredicate> item) implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                         EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
                         LocationPredicate.CODEC.optionalFieldOf("location").forGetter(TriggerInstance::location),
@@ -41,7 +45,7 @@ public class FramePrintedTrigger extends SimpleCriterionTrigger<FramePrintedTrig
                                BlockPos pos,
                                Frame frame,
                                ItemStack result) {
-            return (location.isEmpty() || location.get().matches(player.serverLevel(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
+            return (location.isEmpty() || location.get().matches(player.level(), pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5))
                     && (this.frame.isEmpty() || this.frame.get().matches(frame))
                     && (item.isEmpty() || item.get().test(result));
         }

@@ -1,6 +1,7 @@
 package io.github.mortuusars.exposure.world.inventory;
 
 import io.github.mortuusars.exposure.Exposure;
+import io.github.mortuusars.exposure.world.entity.CameraHolder;
 import io.github.mortuusars.exposure.util.supporter.Supporters;
 import io.github.mortuusars.exposure.world.inventory.slot.FilteredSlot;
 import io.github.mortuusars.exposure.world.item.camera.Attachment;
@@ -62,9 +63,13 @@ public abstract class AbstractCameraAttachmentsMenu extends AbstractContainerMen
             public int getMaxStackSize() {
                 return 1;
             }
-        };
 
-        container.addListener(this::onContainerChanged);
+            @Override
+            public void setChanged() {
+                super.setChanged();
+                onContainerChanged(this);
+            }
+        };
         return container;
     }
 
@@ -127,7 +132,7 @@ public abstract class AbstractCameraAttachmentsMenu extends AbstractContainerMen
                 attachment.playRemoveSoundSided(player);
             }
 
-            getCamera().apply((item, stack) -> item.actionPerformed(stack, player));
+            getCamera().apply((item, stack) -> item.actionPerformed(stack, CameraHolder.of(player)));
         }
     }
 

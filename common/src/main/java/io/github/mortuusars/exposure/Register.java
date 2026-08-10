@@ -3,16 +3,17 @@ package io.github.mortuusars.exposure;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.MapCodec;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.minecraft.advancements.CriterionTrigger;
-import net.minecraft.advancements.critereon.EntitySubPredicate;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.triggers.CriterionTrigger;
+import net.minecraft.advancements.predicates.entity.EntitySubPredicate;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,11 +36,12 @@ import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfigur
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Register {
     @ExpectPlatform
-    public static <T extends Block> Supplier<T> block(String id, Supplier<T> supplier) {
+    public static <T extends Block> Supplier<T> block(String id, Function<ResourceKey<Block>, T> factory) {
         throw new AssertionError();
     }
 
@@ -60,7 +62,7 @@ public class Register {
     }
 
     @ExpectPlatform
-    public static <T extends Item> Supplier<T> item(String id, Supplier<T> supplier) {
+    public static <T extends Item> Supplier<T> item(String id, Function<Item.Properties, T> factory) {
         throw new AssertionError();
     }
 
@@ -113,7 +115,7 @@ public class Register {
     }
 
     @ExpectPlatform
-    public static <T extends ItemSubPredicate.Type<?>> Supplier<T> itemSubPredicate(String name, Supplier<T> supplier) {
+    public static <T extends DataComponentPredicate.Type<?>> Supplier<T> itemSubPredicate(String name, Supplier<T> supplier) {
         throw new AssertionError();
     }
 

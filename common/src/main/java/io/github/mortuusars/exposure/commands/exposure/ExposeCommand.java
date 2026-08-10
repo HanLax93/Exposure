@@ -37,7 +37,7 @@ public class ExposeCommand {
     private static int expose(CommandContext<CommandSourceStack> context, CompoundTag properties) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
 
-        if (!properties.contains("id", CompoundTag.TAG_STRING)) {
+        if (!properties.contains("id")) {
             properties.putString("id", ExposureIdentifier.createId(player));
         }
 
@@ -61,9 +61,8 @@ public class ExposeCommand {
             return Component.literal("Exposed: ")
                     .append(Component.literal(exposureId)
                             .withStyle(Style.EMPTY
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                            "/exposure show id " + exposureId))
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(photograph)))
+                                    .withClickEvent(new ClickEvent.RunCommand("/exposure show id " + exposureId))
+                                    .withHoverEvent(new HoverEvent.ShowItem(net.minecraft.world.item.ItemStackTemplate.fromStack(photograph)))
                                     .withUnderlined(true)));
         };
 

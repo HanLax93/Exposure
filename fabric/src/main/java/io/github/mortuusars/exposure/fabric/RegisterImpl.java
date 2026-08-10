@@ -6,20 +6,22 @@ import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.Register;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.advancements.CriterionTrigger;
-import net.minecraft.advancements.critereon.EntitySubPredicate;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.minecraft.advancements.triggers.CriterionTrigger;
+import net.minecraft.advancements.predicates.entity.EntitySubPredicate;
+import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -41,8 +43,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class RegisterImpl {
-    public static <T extends Block> Supplier<T> block(String id, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.BLOCK, Exposure.resource(id), supplier.get());
+    public static <T extends Block> Supplier<T> block(String id, Function<ResourceKey<Block>, T> factory) {
+        ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, Exposure.resource(id));
+        T obj = Registry.register(BuiltInRegistries.BLOCK, key, factory.apply(key));
         return () -> obj;
     }
 
@@ -52,11 +55,12 @@ public class RegisterImpl {
     }
 
     public static <T extends BlockEntity> BlockEntityType<T> newBlockEntityType(Register.BlockEntitySupplier<T> blockEntitySupplier, Block... validBlocks) {
-        return BlockEntityType.Builder.of(blockEntitySupplier::create, validBlocks).build();
+        return new BlockEntityType<>(blockEntitySupplier::create, java.util.Set.of(validBlocks));
     }
 
-    public static <T extends Item> Supplier<T> item(String id, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.ITEM, Exposure.resource(id), supplier.get());
+    public static <T extends Item> Supplier<T> item(String id, Function<Item.Properties, T> factory) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Exposure.resource(id));
+        T obj = Registry.register(BuiltInRegistries.ITEM, key, factory.apply(new Item.Properties().setId(key)));
         return () -> obj;
     }
 
@@ -74,7 +78,7 @@ public class RegisterImpl {
                         .clientTrackingRange(clientTrackingRange)
                         .alwaysUpdateVelocity(velocityUpdates)
                         .updateInterval(updateInterval)
-                        .build());
+                        .build(ResourceKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, Exposure.resource(id))));
         return () -> type;
     }
 
@@ -82,7 +86,8 @@ public class RegisterImpl {
         EntityType.Builder<T> builder = EntityType.Builder.of(factory, category);
         typeBuilder.accept(builder);
         builder.alwaysUpdateVelocity(receiveVelocityUpdates);
-        EntityType<T> type = Registry.register(BuiltInRegistries.ENTITY_TYPE, Exposure.resource(id), builder.build());
+        EntityType<T> type = Registry.register(BuiltInRegistries.ENTITY_TYPE, Exposure.resource(id),
+                builder.build(ResourceKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, Exposure.resource(id))));
         return () -> type;
     }
 
@@ -92,7 +97,7 @@ public class RegisterImpl {
     }
 
     public static <T extends MenuType<E>, E extends AbstractContainerMenu> Supplier<MenuType<E>> menuType(String id, Register.MenuTypeSupplier<E> supplier) {
-        ExtendedScreenHandlerType<E, byte[]> type = new ExtendedScreenHandlerType<>((syncId, inventory, data) -> {
+        ExtendedMenuType<E, byte[]> type = new ExtendedMenuType<>((syncId, inventory, data) -> {
             RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(data), inventory.player.registryAccess());
             E menu = supplier.create(syncId, inventory, buffer);
             buffer.release();
@@ -121,13 +126,14 @@ public class RegisterImpl {
         return () -> obj;
     }
 
-    public static <T extends ItemSubPredicate.Type<?>> Supplier<T> itemSubPredicate(String name, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.ITEM_SUB_PREDICATE_TYPE, Exposure.resource(name), supplier.get());
+    public static <T extends DataComponentPredicate.Type<?>> Supplier<T> itemSubPredicate(String name, Supplier<T> supplier) {
+        T obj = Registry.register(BuiltInRegistries.DATA_COMPONENT_PREDICATE_TYPE, Exposure.resource(name), supplier.get());
         return () -> obj;
     }
 
     public static <T extends MapCodec<EntitySubPredicate>> Supplier<T> entitySubPredicate(String name, Supplier<T> supplier) {
-        T obj = Registry.register(BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, Exposure.resource(name), supplier.get());
+        T obj = supplier.get();
+        Registry.register(BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, Exposure.resource(name), obj.codec());
         return () -> obj;
     }
 

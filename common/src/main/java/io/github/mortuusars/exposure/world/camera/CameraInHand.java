@@ -42,7 +42,8 @@ public class CameraInHand extends Camera {
         }
 
         if (getHolder() instanceof Player player) {
-            for (ItemStack stack : player.getInventory().items) {
+            for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+                ItemStack stack = player.getInventory().getItem(slot);
                 if (getId().matches(stack) && stack.getItem() instanceof CameraItem cameraItem && cameraItem.isActive(stack)) {
                     cameraItem.deactivate(getHolder().asHolderEntity(), stack);
                     return true;

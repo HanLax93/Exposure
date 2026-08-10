@@ -1,6 +1,6 @@
 package io.github.mortuusars.exposure.util.supporter;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 
 import java.util.UUID;
 

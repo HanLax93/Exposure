@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -19,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.DamageTypeTags;
@@ -31,8 +31,10 @@ import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -44,6 +46,7 @@ import org.slf4j.Logger;
 
 public class PhotographFrameEntity extends HangingEntity {
     public static final Logger LOGGER = Exposure.LOGGER;
+    private static final java.util.function.Predicate<Entity> HANGING_ENTITY = entity -> entity instanceof HangingEntity;
 
     protected static final EntityDataAccessor<Integer> DATA_SIZE = SynchedEntityData.defineId(PhotographFrameEntity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<ItemStack> DATA_FRAME_ITEM = SynchedEntityData.defineId(PhotographFrameEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -76,7 +79,7 @@ public class PhotographFrameEntity extends HangingEntity {
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
         // Return defaults when called on server. Some mods can do that.
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             double d = 64 * getViewScale();
             return distance < d * d;
         }
@@ -107,46 +110,42 @@ public class PhotographFrameEntity extends HangingEntity {
 
     @Override
     public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity entity) {
-        int packedData = (size << 8) | direction.get3DDataValue();
+        int packedData = (size << 8) | getDirection().get3DDataValue();
         return new ClientboundAddEntityPacket(this, packedData, this.getPos());
     }
 
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
+    protected void addAdditionalSaveData(@NotNull ValueOutput output) {
+        super.addAdditionalSaveData(output);
         ItemStack item = getItem();
         if (!item.isEmpty()) {
-            tag.put("Item", item.save(this.registryAccess()));
-            tag.putBoolean("IsGlowing", this.isGlowing()); // "Glowing" is used in vanilla
-            tag.putByte("ItemRotation", (byte) this.getItemRotation());
+            output.store("Item", ItemStack.CODEC, item);
+            output.putBoolean("IsGlowing", this.isGlowing()); // "Glowing" is used in vanilla
+            output.putByte("ItemRotation", (byte) this.getItemRotation());
         }
         ItemStack frameItem = getFrameItem();
         if (!frameItem.isEmpty())
-            tag.put("FrameItem", frameItem.save(this.registryAccess()));
+            output.store("FrameItem", ItemStack.CODEC, frameItem);
 
-        tag.putByte("Size", (byte) getSize());
-        tag.putByte("Facing", (byte) direction.get3DDataValue());
-        tag.putBoolean("Invisible", isInvisible());
+        output.putByte("Size", (byte) getSize());
+        output.putByte("Facing", (byte) getDirection().get3DDataValue());
+        output.putBoolean("Invisible", isInvisible());
     }
 
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        CompoundTag frameItemTag = tag.getCompound("FrameItem");
-        if (!frameItemTag.isEmpty()) {
-            ItemStack stack = ItemStack.parse(registryAccess(), frameItemTag).orElse(new ItemStack(getBaseFrameItem()));
-            setFrameItem(stack);
+    protected void readAdditionalSaveData(@NotNull ValueInput input) {
+        super.readAdditionalSaveData(input);
+        input.read("FrameItem", ItemStack.CODEC).ifPresentOrElse(this::setFrameItem,
+                () -> setFrameItem(new ItemStack(getBaseFrameItem())));
+
+        ItemStack item = input.read("Item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        if (!item.isEmpty()) {
+            setItem(item);
+            setGlowing(input.getBooleanOr("IsGlowing", false)); // "Glowing" is used in vanilla
+            setItemRotation(input.getByteOr("ItemRotation", (byte) 0));
         }
 
-        CompoundTag itemTag = tag.getCompound("Item");
-        if (!itemTag.isEmpty()) {
-            ItemStack itemstack = ItemStack.parse(registryAccess(), itemTag).orElse(ItemStack.EMPTY);
-            setItem(itemstack);
-            setGlowing(tag.getBoolean("IsGlowing")); // "Glowing" is used in vanilla
-            setItemRotation(tag.getByte("ItemRotation"));
-        }
-
-        setSize(tag.getByte("Size"));
-        setDirection(Direction.from3DDataValue(tag.getByte("Facing")));
-        setInvisible(tag.getBoolean("Invisible"));
+        setSize(input.getByteOr("Size", (byte) 0));
+        setDirection(Direction.from3DDataValue(input.getByteOr("Facing", (byte) 0)));
+        setInvisible(input.getBooleanOr("Invisible", false));
     }
 
     @Override
@@ -218,7 +217,7 @@ public class PhotographFrameEntity extends HangingEntity {
 
         int sizeX = Math.max(1, getWidth() / 16);
         int sizeY = Math.max(1, getHeight() / 16);
-        BlockPos baseBlockPos = pos.relative(direction.getOpposite());
+        BlockPos baseBlockPos = pos.relative(getDirection().getOpposite());
 
         if (getDirection().getAxis().isHorizontal()) {
             Direction direction = getDirection().getCounterClockWise();
@@ -250,10 +249,10 @@ public class PhotographFrameEntity extends HangingEntity {
     protected void setDirection(@NotNull Direction facingDirection) {
         Preconditions.checkNotNull(facingDirection);
 
-        direction = facingDirection;
+        setDirectionRaw(facingDirection);
         if (facingDirection.getAxis().isHorizontal()) {
             setXRot(0.0f);
-            setYRot(direction.get2DDataValue() * 90);
+            setYRot(facingDirection.get2DDataValue() * 90);
         } else {
             setXRot(-90 * facingDirection.getAxisDirection().getStep());
             setYRot(0.0f);
@@ -294,9 +293,6 @@ public class PhotographFrameEntity extends HangingEntity {
     }
 
     protected void onItemChanged(ItemStack itemStack) {
-        if (!itemStack.isEmpty()) {
-            itemStack.setEntityRepresentation(this);
-        }
     }
 
     public int getItemRotation() {
@@ -320,7 +316,7 @@ public class PhotographFrameEntity extends HangingEntity {
     }
 
     @Override
-    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand) {
+    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand, Vec3 hitPosition) {
         ItemStack itemInHand = player.getItemInHand(hand);
 
         if (itemInHand.getItem() instanceof PhotographItem && getItem().isEmpty()) {
@@ -334,7 +330,7 @@ public class PhotographFrameEntity extends HangingEntity {
         if (itemInHand.is(Items.GLOW_INK_SAC) && !isGlowing()) {
             setGlowing(true);
             itemInHand.shrink(1);
-            if (!level().isClientSide) {
+            if (!level().isClientSide()) {
                 playSound(SoundEvents.GLOW_INK_SAC_USE);
                 gameEvent(GameEvent.BLOCK_CHANGE, player);
             }
@@ -342,7 +338,7 @@ public class PhotographFrameEntity extends HangingEntity {
         }
 
         if (!getItem().isEmpty()) {
-            if (!level().isClientSide) {
+            if (!level().isClientSide()) {
                 playSound(getRotateSound(), 1.0F, level().getRandom().nextFloat() * 0.2f + 0.9f);
                 setItemRotation(getItemRotation() + 1);
                 gameEvent(GameEvent.BLOCK_CHANGE, player);
@@ -354,45 +350,40 @@ public class PhotographFrameEntity extends HangingEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource damageSource, float amount) {
-        if (isInvulnerableTo(damageSource))
-            return false;
-
+    public boolean hurtServer(ServerLevel level, @NotNull DamageSource damageSource, float amount) {
         if (!damageSource.is(DamageTypeTags.IS_EXPLOSION) && !getItem().isEmpty()) {
-            if (!level().isClientSide) {
-                dropItem(damageSource.getEntity(), false);
-                gameEvent(GameEvent.BLOCK_CHANGE, damageSource.getEntity());
-                playSound(getRemoveItemSound(), 1.0f, 1.0f);
-            }
+            dropItem(level, damageSource.getEntity(), false);
+            gameEvent(GameEvent.BLOCK_CHANGE, damageSource.getEntity());
+            playSound(getRemoveItemSound(), 1.0f, 1.0f);
             return true;
         }
 
-        return super.hurt(damageSource, amount);
+        return super.hurtServer(level, damageSource, amount);
     }
 
     @Override
-    public void dropItem(@Nullable Entity brokenEntity) {
+    public void dropItem(ServerLevel level, @Nullable Entity brokenEntity) {
         playSound(getBreakSound(), 1.0f, 1.0f);
-        dropItem(brokenEntity, true);
+        dropItem(level, brokenEntity, true);
         gameEvent(GameEvent.BLOCK_CHANGE, brokenEntity);
     }
 
-    protected void dropItem(@Nullable Entity entity, boolean dropSelf) {
+    protected void dropItem(ServerLevel level, @Nullable Entity entity, boolean dropSelf) {
         ItemStack itemStack = getItem();
         setItem(ItemStack.EMPTY);
 
-        if (!level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) return;
+        if (!level.getGameRules().get(GameRules.ENTITY_DROPS)) return;
         if (entity instanceof Player player && player.isCreative()) return;
 
         // Prevent item phasing through the block when placed on the ceiling (pointing DOWN)
         float yOffset = getDirection() == Direction.DOWN ? -0.3f : 0f;
 
         if (dropSelf) {
-            spawnAtLocation(getFrameItem(), yOffset);
+            spawnAtLocation(level, getFrameItem(), yOffset);
         }
 
         if (!itemStack.isEmpty()) {
-            spawnAtLocation(itemStack.copy(), yOffset);
+            spawnAtLocation(level, itemStack.copy(), yOffset);
         }
     }
 
@@ -408,9 +399,9 @@ public class PhotographFrameEntity extends HangingEntity {
     @Override
     public void tick() {
         super.tick();
-        if (level().isClientSide && isGlowing() && level().getRandom().nextFloat() < 0.003f) {
+        if (level().isClientSide() && isGlowing() && level().getRandom().nextFloat() < 0.003f) {
             AABB bb = getBoundingBox();
-            Vec3i normal = getDirection().getNormal();
+            Vec3i normal = getDirection().getUnitVec3i();
             level().addParticle(ParticleTypes.END_ROD,
                     position().x + (level().getRandom().nextFloat() * (bb.getXsize() * 0.75f) - bb.getXsize() * 0.75f / 2),
                     position().y + (level().getRandom().nextFloat() * (bb.getYsize() * 0.75f) - bb.getYsize() * 0.75f / 2),

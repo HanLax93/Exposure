@@ -5,19 +5,21 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import org.jetbrains.annotations.NotNull;
 
 public class PhotographAgingRecipe extends ComponentTransferringRecipe {
     public PhotographAgingRecipe(CraftingBookCategory category, Ingredient sourceIngredient,
-                                 NonNullList<Ingredient> ingredients, ItemStack result) {
+                                 NonNullList<Ingredient> ingredients, ItemStackTemplate result) {
         super(category, sourceIngredient, ingredients, result);
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
-        return Exposure.RecipeSerializers.PHOTOGRAPH_AGING.get();
+    @SuppressWarnings("unchecked")
+    public @NotNull RecipeSerializer<? extends CustomRecipe> getSerializer() {
+        return (RecipeSerializer<? extends CustomRecipe>) Exposure.RecipeSerializers.PHOTOGRAPH_AGING.get();
     }
 
     @Override

@@ -12,6 +12,10 @@ import java.util.Optional;
  * Injected interfaces must have all methods as 'default'.
  */
 public interface CameraHolder {
+    static CameraHolder of(Entity entity) {
+        return (CameraHolder) (Object) entity;
+    }
+
     /**
      * Player that captures the image (renders it). If missing - photo should not be taken.
      */

@@ -5,10 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
 import io.github.mortuusars.exposure.world.level.storage.ExposureIdentifier;
-import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SingleComponentItemPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
+import net.minecraft.advancements.predicates.SingleComponentItemPredicate;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -43,10 +42,6 @@ public record FramePredicate(Optional<ExposureIdentifier> identifier,
     }
 
     @Override
-    public boolean matches(ItemStack stack, Frame frame) {
-        return matches(frame);
-    }
-
     public boolean matches(Frame frame) {
         return (identifier.isEmpty() || identifier.get().equals(frame.identifier()))
                 && (type.isEmpty() || type.get().equals(frame.type().getSerializedName()))

@@ -1,14 +1,13 @@
 package io.github.mortuusars.exposure.util;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.mojang.serialization.Codec;
 import io.github.mortuusars.exposure.Exposure;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.*;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.function.TriConsumer;
@@ -20,32 +19,30 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * Extension of CompoundTag to allow better type safety. <br>
+ * Type-safe wrapper around {@link CompoundTag}. <br>
  * {@link Type} is meant to be stored in a static final field in appropriate places.
  */
-public class ExtraData extends CompoundTag {
-    public static final Codec<ExtraData> CODEC = CompoundTag.CODEC.xmap(ExtraData::new, data -> data);
-    public static final StreamCodec<ByteBuf, ExtraData> STREAM_CODEC = ByteBufCodecs.COMPOUND_TAG.map(ExtraData::new, data -> data);
+public final class ExtraData {
+    public static final Codec<ExtraData> CODEC = CompoundTag.CODEC.xmap(ExtraData::new, ExtraData::toTag);
+    public static final StreamCodec<ByteBuf, ExtraData> STREAM_CODEC = ByteBufCodecs.COMPOUND_TAG.map(ExtraData::new, ExtraData::toTag);
 
-    public static final ExtraData EMPTY = new ExtraData(Collections.emptyMap());
-    private final Map<String, Tag> tags;
-
-    protected ExtraData(Map<String, Tag> tags) {
-        super(tags);
-        this.tags = tags;
-    }
+    public static final ExtraData EMPTY = new ExtraData();
+    private final CompoundTag tag;
 
     public ExtraData() {
-        this(new HashMap<>());
+        this.tag = new CompoundTag();
     }
 
     public ExtraData(CompoundTag tag) {
-        this(new HashMap<>());
-        merge(tag);
+        this.tag = tag.copy();
+    }
+
+    public CompoundTag toTag() {
+        return tag.copy();
     }
 
     public <T> Optional<T> get(@NotNull ExtraData.Type<T> type) {
-        if (!contains(type.key())) return Optional.empty();
+        if (!tag.contains(type.key())) return Optional.empty();
         try {
             return Optional.ofNullable(type.getter().apply(this, type.key()));
         } catch (Exception e) {
@@ -55,7 +52,7 @@ public class ExtraData extends CompoundTag {
     }
 
     public <T> T getOrDefault(@NotNull ExtraData.Type<T> type, T defaultValue) {
-        if (!contains(type.key())) return defaultValue;
+        if (!tag.contains(type.key())) return defaultValue;
         try {
             @Nullable T value = type.getter().apply(this, type.key());
             return value != null ? value : defaultValue;
@@ -71,35 +68,50 @@ public class ExtraData extends CompoundTag {
     }
 
     public <T> void remove(Type<T> type) {
-        remove(type.key());
+        tag.remove(type.key());
     }
 
     // --
 
-    @Override
     public @NotNull ExtraData copy() {
-        Map<String, Tag> map = Maps.newHashMap(Maps.transformValues(this.tags, Tag::copy));
-        return new ExtraData(map);
+        return new ExtraData(tag);
+    }
+
+    public @NotNull ExtraData merge(CompoundTag other) {
+        tag.merge(other);
+        return this;
+    }
+
+    public @NotNull ExtraData merge(ExtraData other) {
+        return merge(other.tag);
+    }
+
+    public boolean contains(String key) { return tag.contains(key); }
+    public String getString(String key) { return tag.getStringOr(key, ""); }
+    public boolean getBoolean(String key) { return tag.getBooleanOr(key, false); }
+    public int getInt(String key) { return tag.getIntOr(key, 0); }
+    public long getLong(String key) { return tag.getLongOr(key, 0L); }
+    public float getFloat(String key) { return tag.getFloatOr(key, 0F); }
+    public double getDouble(String key) { return tag.getDoubleOr(key, 0D); }
+    public ListTag getList(String key, int ignoredElementType) { return tag.getListOrEmpty(key); }
+    public Tag get(String key) { return tag.get(key); }
+    public Set<String> getAllKeys() { return tag.keySet(); }
+    public void put(String key, Tag value) { tag.put(key, value); }
+    public void putString(String key, String value) { tag.putString(key, value); }
+    public void putBoolean(String key, boolean value) { tag.putBoolean(key, value); }
+    public void putInt(String key, int value) { tag.putInt(key, value); }
+    public void putLong(String key, long value) { tag.putLong(key, value); }
+    public void putFloat(String key, float value) { tag.putFloat(key, value); }
+    public void putDouble(String key, double value) { tag.putDouble(key, value); }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof ExtraData data && tag.equals(data.tag);
     }
 
     @Override
-    public @NotNull ExtraData merge(CompoundTag other) {
-        for (String key : other.getAllKeys()) {
-            Tag tag = other.get(key);
-            assert tag != null;
-            if (tag.getId() == 10) {
-                if (this.contains(key, 10)) {
-                    CompoundTag compoundTag = this.getCompound(key);
-                    compoundTag.merge((CompoundTag) tag);
-                } else {
-                    this.put(key, tag.copy());
-                }
-            } else {
-                this.put(key, tag.copy());
-            }
-        }
-
-        return this;
+    public int hashCode() {
+        return tag.hashCode();
     }
 
     // --
@@ -140,7 +152,7 @@ public class ExtraData extends CompoundTag {
             return new Type<>(key,
                     (data, k) -> {
                         ListTag pos = data.getList(k, DoubleTag.TAG_DOUBLE);
-                        return new Vec3(pos.getDouble(0), pos.getDouble(1), pos.getDouble(2));
+                        return new Vec3(pos.getDoubleOr(0, 0.0), pos.getDoubleOr(1, 0.0), pos.getDoubleOr(2, 0.0));
                     },
                     (data, k, value) -> {
                         ListTag pos = new ListTag();
@@ -151,9 +163,9 @@ public class ExtraData extends CompoundTag {
                     });
         }
 
-        public static Type<ResourceLocation> resourceLocation(String key) {
+        public static Type<Identifier> resourceLocation(String key) {
             return new Type<>(key,
-                    (data, k) -> ResourceLocation.parse(data.getString(k)),
+                    (data, k) -> Identifier.parse(data.getString(k)),
                     (data, k, value) -> data.putString(k, value.toString()));
         }
 
@@ -172,7 +184,7 @@ public class ExtraData extends CompoundTag {
         }
 
         public static <T> Type<List<T>> stringBasedList(String key, Function<String, T> extractFunc, Function<T, String> packFunc) {
-            return list(key, Tag.TAG_STRING, tag -> extractFunc.apply(tag.getAsString()), value -> StringTag.valueOf(packFunc.apply(value)));
+            return list(key, Tag.TAG_STRING, tag -> extractFunc.apply(tag.asString().orElse("")), value -> StringTag.valueOf(packFunc.apply(value)));
         }
     }
 }

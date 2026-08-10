@@ -16,6 +16,7 @@ import io.github.mortuusars.exposure.client.util.Minecrft;
 import io.github.mortuusars.exposure.client.capture.template.CaptureTemplates;
 import io.github.mortuusars.exposure.client.capture.palettizer.Palettizer;
 import io.github.mortuusars.exposure.client.capture.saving.ExposureUploader;
+import io.github.mortuusars.exposure.client.capture.CaptureShader;
 import io.github.mortuusars.exposure.world.camera.ExposureType;
 import io.github.mortuusars.exposure.world.camera.capture.CaptureParameters;
 import io.github.mortuusars.exposure.data.ColorPalette;
@@ -34,7 +35,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
@@ -48,14 +49,14 @@ public class ClientPacketsHandler {
 
     public static void applyShader(ShaderApplyS2CP packet) {
         packet.shaderLocation().ifPresentOrElse(
-                shader -> Minecrft.get().gameRenderer.loadEffect(shader),
-                () -> Minecrft.get().gameRenderer.shutdownEffect());
+                CaptureShader::apply,
+                CaptureShader::remove);
     }
 
     public static void showExposure(ShowExposureCommandS2CP packet) {
         if (packet.negative()) {
             Screen screen = new FilmFrameInspectScreen(packet.frames());
-            Minecrft.get().setScreen(screen);
+            Minecrft.get().gui.setScreen(screen);
             return;
         }
 
@@ -67,7 +68,7 @@ public class ClientPacketsHandler {
         Collections.reverse(photographs);
 
         Screen screen = new PhotographScreen(photographs);
-        Minecrft.get().setScreen(screen);
+        Minecrft.get().gui.setScreen(screen);
     }
 
     public static void exportExposures(ExportS2CP packet) {
@@ -76,7 +77,7 @@ public class ClientPacketsHandler {
 
     public static void stopExportTask() {
         if (!ExportExposuresTask.stopCurrentTask()) {
-            Minecrft.player().displayClientMessage(Component.translatable("task.exposure.export.not_running")
+            io.github.mortuusars.exposure.util.PlayerUtil.displayClientMessage(Minecrft.player(), Component.translatable("task.exposure.export.not_running")
                     .withStyle(ChatFormatting.RED), false);
         }
     }
@@ -105,7 +106,7 @@ public class ClientPacketsHandler {
 
         Holder<ColorPalette> colorPalette = ColorPalettes.getDefault(Minecrft.registryAccess());
         ColorPalette palette = colorPalette.value();
-        ResourceLocation paletteId = colorPalette.unwrapKey().orElseThrow().location();
+        Identifier paletteId = colorPalette.unwrapKey().orElseThrow().identifier();
 
         ExposureClient.cycles().addParallelTask(new ExposureRetrieveTask(packet.layers(), 20_000)
                 .then(Result::unwrap)
@@ -148,7 +149,7 @@ public class ClientPacketsHandler {
     }
 
     public static void stopControllingCameraStand(CameraStandStopControllingS2CP packet) {
-        if (Minecrft.get().cameraEntity != Minecrft.player() && Minecrft.level().getEntity(packet.standId()) instanceof CameraStandEntity stand) {
+        if (Minecrft.get().getCameraEntity() != Minecrft.player() && Minecrft.level().getEntity(packet.standId()) instanceof CameraStandEntity stand) {
             stand.stopControlling();
             CameraClient.setCameraEntity(Minecrft.player());
         }

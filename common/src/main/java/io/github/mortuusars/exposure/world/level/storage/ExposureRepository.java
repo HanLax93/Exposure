@@ -2,6 +2,7 @@ package io.github.mortuusars.exposure.world.level.storage;
 
 import com.google.common.base.Preconditions;
 import com.mojang.logging.LogUtils;
+import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.network.Packets;
 import io.github.mortuusars.exposure.network.packet.clientbound.ExposureDataChangedS2CP;
 import io.github.mortuusars.exposure.network.packet.clientbound.ExposureDataResponseS2CP;
@@ -9,7 +10,7 @@ import io.github.mortuusars.exposure.util.UnixTimestamp;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +32,7 @@ public class ExposureRepository {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     protected final MinecraftServer server;
-    protected final DimensionDataStorage dataStorage;
+    protected final SavedDataStorage dataStorage;
     protected final Path worldFolderPath;
     protected final Path exposuresFolderPath;
 
@@ -41,12 +42,12 @@ public class ExposureRepository {
         this.server = server;
         this.dataStorage = server.overworld().getDataStorage();
         this.worldFolderPath = server.getWorldPath(LevelResource.ROOT);
-        this.exposuresFolderPath = worldFolderPath.resolve("data/" + EXPOSURES_DIRECTORY_NAME);
+        this.exposuresFolderPath = worldFolderPath.resolve("data/" + Exposure.ID + "/" + EXPOSURES_DIRECTORY_NAME);
     }
 
     public List<String> getAllIds() {
         // Save exposures that are in cache and waiting to be saved:
-        dataStorage.save();
+        dataStorage.saveAndJoin();
 
         File folder = exposuresFolderPath.toFile();
 
@@ -65,8 +66,7 @@ public class ExposureRepository {
         Preconditions.checkNotNull(id, "id");
         Preconditions.checkArgument(!StringUtil.isBlank(id), "Cannot load exposure: id is empty.");
 
-        String name = EXPOSURES_DIRECTORY_NAME + "/" + id;
-        @Nullable ExposureData exposureData = dataStorage.get(ExposureData.factory(), name);
+        @Nullable ExposureData exposureData = dataStorage.get(ExposureData.type(id));
 
         if (exposureData == null) {
             File filepath = exposuresFolderPath.resolve(id + ".dat").toFile();
@@ -86,8 +86,7 @@ public class ExposureRepository {
         Preconditions.checkArgument(!StringUtil.isBlank(id), "Cannot save exposure: id is null or empty.");
 
         if (ensureExposuresDirectoryExists()) {
-            String saveDataName = EXPOSURES_DIRECTORY_NAME + "/" + id;
-            dataStorage.set(saveDataName, data);
+            dataStorage.set(ExposureData.type(id), data);
             data.setDirty();
             Packets.sendToAllClients(new ExposureDataChangedS2CP(id));
         }

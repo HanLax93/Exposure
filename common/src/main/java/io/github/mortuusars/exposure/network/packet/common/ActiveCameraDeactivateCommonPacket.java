@@ -6,14 +6,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class ActiveCameraDeactivateCommonPacket implements Packet {
     public static final ActiveCameraDeactivateCommonPacket INSTANCE = new ActiveCameraDeactivateCommonPacket();
 
-    public static final ResourceLocation ID = Exposure.resource("active_camera_deactivate");
+    public static final Identifier ID = Exposure.resource("active_camera_deactivate");
     public static final Type<ActiveCameraDeactivateCommonPacket> TYPE = new Type<>(ID);
 
     public static final StreamCodec<FriendlyByteBuf, ActiveCameraDeactivateCommonPacket> STREAM_CODEC = StreamCodec.unit(INSTANCE);
@@ -28,9 +28,9 @@ public class ActiveCameraDeactivateCommonPacket implements Packet {
 
     @Override
     public boolean handle(PacketFlow flow, Player player) {
-        player.getActiveExposureCameraOptional().ifPresent(camera -> {
+        io.github.mortuusars.exposure.world.entity.CameraOperator.of(player).getActiveExposureCameraOptional().ifPresent(camera -> {
             camera.map((item, stack) -> item.deactivate(camera.getHolder().asHolderEntity(), stack));
-            player.removeActiveExposureCamera();
+            io.github.mortuusars.exposure.world.entity.CameraOperator.of(player).removeActiveExposureCamera();
         });
         return true;
     }

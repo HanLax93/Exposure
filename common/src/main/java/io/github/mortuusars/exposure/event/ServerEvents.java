@@ -12,8 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import java.util.stream.Stream;
 
 public class ServerEvents {
-    public static void onServerSave() {
-        if (Config.Server.CLEANUP_TIMED_OUT_EXPECTED_EXPOSURES.get()) {
+    public static void onServerSave(MinecraftServer server) {
+        // 26.2 saves once while IntegratedServer is still starting, before SERVER_STARTED initializes ExposureServer.
+        if (ExposureServer.isInitializedFor(server) && Config.Server.CLEANUP_TIMED_OUT_EXPECTED_EXPOSURES.get()) {
             ExposureServer.exposureRepository().clearExpectedExposuresTimedOutLongAgo();
         }
     }
@@ -23,7 +24,7 @@ public class ServerEvents {
     }
 
     public static void serverStopped(MinecraftServer server) {
-
+        ExposureServer.shutdown(server);
     }
 
     public static void syncDatapack(Stream<ServerPlayer> relevantPlayers) {
@@ -36,12 +37,12 @@ public class ServerEvents {
 
     public static void itemDrop(ServerPlayer player) {
         Inventory inventory = player.getInventory();
-        ItemStack droppedItem = inventory.getSelected();
+        ItemStack droppedItem = inventory.getSelectedItem();
 
         if (droppedItem.getItem() instanceof CameraItem cameraItem && cameraItem.isActive(droppedItem)) {
-            player.getActiveExposureCameraOptional().ifPresentOrElse(
+            io.github.mortuusars.exposure.world.entity.CameraOperator.of(player).getActiveExposureCameraOptional().ifPresentOrElse(
                     camera -> {
-                        player.removeActiveExposureCamera();
+                        io.github.mortuusars.exposure.world.entity.CameraOperator.of(player).removeActiveExposureCamera();
                         cameraItem.deactivate(player, droppedItem);
                     },
                     () -> cameraItem.setActive(droppedItem, false));

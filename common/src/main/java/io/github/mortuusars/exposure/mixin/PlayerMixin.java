@@ -5,12 +5,15 @@ import io.github.mortuusars.exposure.world.camera.CameraOnStand;
 import io.github.mortuusars.exposure.world.entity.CameraHolder;
 import io.github.mortuusars.exposure.world.entity.CameraOperator;
 import io.github.mortuusars.exposure.world.item.camera.CameraItem;
+import io.github.mortuusars.exposure.network.Packets;
+import io.github.mortuusars.exposure.network.packet.clientbound.ActiveCameraRemoveS2CP;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -79,11 +82,17 @@ public abstract class PlayerMixin extends LivingEntity implements CameraHolder, 
     @Override
     public void setActiveExposureCamera(@Nullable Camera camera) {
         activeExposureCamera = camera;
+        if ((Object) this instanceof ServerPlayer && camera != null) {
+            Packets.sendToAllClients(camera.createSyncPacket());
+        }
     }
 
     @Override
     public void removeActiveExposureCamera() {
         activeExposureCamera = null;
+        if ((Object) this instanceof ServerPlayer) {
+            Packets.sendToAllClients(new ActiveCameraRemoveS2CP(getId()));
+        }
     }
 
     @Override

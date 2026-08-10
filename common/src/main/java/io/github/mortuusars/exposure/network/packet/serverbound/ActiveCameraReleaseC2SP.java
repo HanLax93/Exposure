@@ -24,7 +24,7 @@ public class ActiveCameraReleaseC2SP implements Packet {
 
     @Override
     public boolean handle(PacketFlow flow, Player player) {
-        player.getActiveExposureCameraOptional().ifPresentOrElse(
+        io.github.mortuusars.exposure.world.entity.CameraOperator.of(player).getActiveExposureCameraOptional().ifPresentOrElse(
                 Camera::release,
                 () -> Exposure.LOGGER.error("Cannot release shutter: '{}' does not have an active camera.", player));
 

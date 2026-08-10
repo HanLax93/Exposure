@@ -3,19 +3,22 @@ package io.github.mortuusars.exposure.world.item.crafting.recipe;
 import io.github.mortuusars.exposure.Exposure;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.crafting.*;
 import org.jetbrains.annotations.NotNull;
 
 public class FilmDevelopingRecipe extends ComponentTransferringRecipe {
-    public FilmDevelopingRecipe(CraftingBookCategory category, Ingredient filmIngredient, NonNullList<Ingredient> ingredients, ItemStack result) {
+    public FilmDevelopingRecipe(CraftingBookCategory category, Ingredient filmIngredient,
+                                NonNullList<Ingredient> ingredients, ItemStackTemplate result) {
         super(category, filmIngredient, ingredients, result);
     }
 
     @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
-        return Exposure.RecipeSerializers.FILM_DEVELOPING.get();
+    @SuppressWarnings("unchecked")
+    public @NotNull RecipeSerializer<? extends CustomRecipe> getSerializer() {
+        return (RecipeSerializer<? extends CustomRecipe>) Exposure.RecipeSerializers.FILM_DEVELOPING.get();
     }
 
     @Override

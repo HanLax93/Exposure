@@ -7,6 +7,7 @@ import io.github.mortuusars.exposure.world.sound.Sound;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -89,9 +90,9 @@ public class Flash {
         level.players().stream()
                 .filter(player -> !player.equals(executingPlayer) && player.distanceTo(holder.asHolderEntity()) < 128)
                 .forEach(player -> {
-                    level.sendParticles(player, ParticleTypes.FLASH, false,
+                    level.sendParticles(player, ColorParticleOption.create(ParticleTypes.FLASH, 0xffffff), false, false,
                             pos.x, pos.y, pos.z, 0, 0, 0, 0, 0);
-                    level.sendParticles(player, ParticleTypes.END_ROD, false,
+                    level.sendParticles(player, ParticleTypes.END_ROD, false, false,
                             pos.x, pos.y, pos.z, 4, 0.2, 0.2, 0.2, 0.1);
                 });
     }

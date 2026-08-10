@@ -12,7 +12,7 @@ import io.github.mortuusars.exposure.world.entity.CameraHolder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +24,7 @@ public record CaptureParameters(String exposureId,
                                 Optional<Integer> cameraHolderId,
                                 Optional<Double> fov,
                                 float cropFactor,
-                                Optional<ResourceLocation> filter,
+                                Optional<Identifier> filter,
                                 Optional<Projection> projection,
                                 Optional<ColorChannel> singleChannel,
                                 FilmProperties filmProperties,
@@ -45,7 +45,7 @@ public record CaptureParameters(String exposureId,
             Codec.INT.optionalFieldOf("camera_holder_id").forGetter(CaptureParameters::cameraHolderId),
             Codecs.POSITIVE_DOUBLE.optionalFieldOf("fov").forGetter(CaptureParameters::fov),
             Codecs.floatRange(0.001f, 1f).optionalFieldOf("crop_factor", 1f).forGetter(CaptureParameters::cropFactor),
-            ResourceLocation.CODEC.optionalFieldOf("filter").forGetter(CaptureParameters::filter),
+            Identifier.CODEC.optionalFieldOf("filter").forGetter(CaptureParameters::filter),
             Projection.CODEC.optionalFieldOf("projection").forGetter(CaptureParameters::projection),
             ColorChannel.CODEC.optionalFieldOf("single_channel").forGetter(CaptureParameters::singleChannel),
             FilmProperties.CODEC.optionalFieldOf("film", FilmProperties.EMPTY).forGetter(CaptureParameters::filmProperties),
@@ -60,7 +60,7 @@ public record CaptureParameters(String exposureId,
                     ByteBufCodecs.optional(ByteBufCodecs.VAR_INT).decode(buffer),
                     ByteBufCodecs.optional(ByteBufCodecs.DOUBLE).decode(buffer),
                     ByteBufCodecs.FLOAT.decode(buffer),
-                    ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).decode(buffer),
+                    ByteBufCodecs.optional(Identifier.STREAM_CODEC).decode(buffer),
                     ByteBufCodecs.optional(Projection.STREAM_CODEC).decode(buffer),
                     ByteBufCodecs.optional(ColorChannel.STREAM_CODEC).decode(buffer),
                     FilmProperties.STREAM_CODEC.decode(buffer),
@@ -73,7 +73,7 @@ public record CaptureParameters(String exposureId,
             ByteBufCodecs.optional(ByteBufCodecs.VAR_INT).encode(buffer, data.cameraHolderId());
             ByteBufCodecs.optional(ByteBufCodecs.DOUBLE).encode(buffer, data.fov());
             ByteBufCodecs.FLOAT.encode(buffer, data.cropFactor());
-            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).encode(buffer, data.filter());
+            ByteBufCodecs.optional(Identifier.STREAM_CODEC).encode(buffer, data.filter());
             ByteBufCodecs.optional(Projection.STREAM_CODEC).encode(buffer, data.projection());
             ByteBufCodecs.optional(ColorChannel.STREAM_CODEC).encode(buffer, data.singleChannel());
             FilmProperties.STREAM_CODEC.encode(buffer, data.filmProperties());
@@ -103,7 +103,7 @@ public record CaptureParameters(String exposureId,
         private @Nullable Integer cameraHolderEntityID;
         private @Nullable Double fov;
         private float cropFactor = 1f;
-        private @Nullable ResourceLocation filter = null;
+        private @Nullable Identifier filter = null;
         private @Nullable Projection projection;
         private @Nullable ColorChannel chromaticChannel;
         private FilmProperties filmProperties = FilmProperties.EMPTY;
@@ -137,7 +137,7 @@ public record CaptureParameters(String exposureId,
             return this;
         }
 
-        public Builder setFilter(@Nullable ResourceLocation filter) {
+        public Builder setFilter(@Nullable Identifier filter) {
             this.filter = filter;
             return this;
         }

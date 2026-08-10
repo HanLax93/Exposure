@@ -30,6 +30,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -69,8 +70,9 @@ public class DebugCommand {
 
     private static int exposeRGB(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
+        CameraHolder cameraHolder = CameraHolder.of(player);
 
-        @Nullable Camera cameraInHand = CameraInHand.find(player);
+        @Nullable Camera cameraInHand = CameraInHand.find(cameraHolder);
         if (cameraInHand == null || cameraInHand.isEmpty() || !(cameraInHand.getItemStack().getItem() instanceof CameraItem cameraItem)) {
             context.getSource().sendFailure(Component.translatable("command.exposure.debug.expose_rgb.fail.wrong_item"));
             return 0;
@@ -86,7 +88,7 @@ public class DebugCommand {
 
             CaptureParameters params = new CaptureParameters.Builder(exposureId)
                     .setCameraID(cameraInHand.getId())
-                    .setCameraHolder(player)
+                    .setCameraHolder(cameraHolder)
                     .setFov(cameraItem.getFov(player.level(), cameraStack))
                     .setCropFactor(cameraItem.getCropFactor())
                     .setFilmProperties(cameraItem.getFilmProperties(cameraStack).withType(ExposureType.BLACK_AND_WHITE))
@@ -96,11 +98,11 @@ public class DebugCommand {
 
             properties.add(params);
 
-            PointOfView pov = cameraItem.getPointOfView(player, cameraStack);
+            PointOfView pov = cameraItem.getPointOfView(cameraHolder, cameraStack);
             double fov = cameraItem.getViewfinderFov(player.level(), cameraStack);
-            List<BlockPos> positions = cameraItem.getPositionsInFrame(player, pov, fov);
-            List<LivingEntity> entities = EntitiesInFrame.get((CameraHolder) player, pov, fov);
-            Frame frame = cameraItem.createFrame(player, player.serverLevel(), cameraStack, params, positions, entities);
+            List<BlockPos> positions = cameraItem.getPositionsInFrame(cameraHolder, pov, fov);
+            List<LivingEntity> entities = EntitiesInFrame.get(cameraHolder, pov, fov);
+            Frame frame = cameraItem.createFrame(cameraHolder, player.level(), cameraStack, params, positions, entities);
 
             Supplier<Component> msg = () -> {
                 ItemStack photograph = new ItemStack(Exposure.Items.PHOTOGRAPH.get());
@@ -108,9 +110,8 @@ public class DebugCommand {
                 return Component.translatable("command.exposure.debug.expose_rgb.success.captured", channel.getSerializedName())
                         .append(Component.literal(exposureId)
                                 .withStyle(Style.EMPTY
-                                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                "/exposure show id " + exposureId))
-                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(photograph)))
+                                        .withClickEvent(new ClickEvent.RunCommand("/exposure show id " + exposureId))
+                                        .withHoverEvent(new HoverEvent.ShowItem(ItemStackTemplate.fromStack(photograph)))
                                         .withUnderlined(true)));
             };
 
@@ -159,9 +160,8 @@ public class DebugCommand {
                 return Component.translatable("command.exposure.debug.chromatic_from_last_three.success.created")
                         .append(Component.literal(exposureId)
                                 .withStyle(Style.EMPTY
-                                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                                "/exposure show latest"))
-                                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_ITEM, new HoverEvent.ItemStackInfo(photographStack)))
+                                        .withClickEvent(new ClickEvent.RunCommand("/exposure show latest"))
+                                        .withHoverEvent(new HoverEvent.ShowItem(ItemStackTemplate.fromStack(photographStack)))
                                         .withUnderlined(true)));
             };
 
