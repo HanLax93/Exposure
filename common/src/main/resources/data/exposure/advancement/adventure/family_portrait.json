@@ -8,16 +8,15 @@
         },
         "entities_in_frame": [
           {
-            "type": "minecraft:player"
+            "minecraft:entity_type": "minecraft:player"
           },
           [
             {
               "condition": "minecraft:entity_properties",
               "entity": "this",
               "predicate": {
-                "type": "minecraft:cat",
-                "type_specific": {
-                  "type": "exposure:tamed",
+                "minecraft:entity_type": "minecraft:cat",
+                "exposure:tamed": {
                   "is_tamed": true
                 }
               }
@@ -28,9 +27,8 @@
               "condition": "minecraft:entity_properties",
               "entity": "this",
               "predicate": {
-                "type": "minecraft:wolf",
-                "type_specific": {
-                  "type": "exposure:tamed",
+                "minecraft:entity_type": "minecraft:wolf",
+                "exposure:tamed": {
                   "is_tamed": true
                 }
               }
