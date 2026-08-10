@@ -24,6 +24,7 @@
   "advancement.exposure.wildlife_archivist.description": "Fotografía todos los animales salvajes",
   "advancement.exposure.wildlife_archivist.title": "Archivista de la vida salvaje",
   "block.exposure.lightroom": "Sala de luz",
+  "item.exposure.lightroom": "Sala de luz",
   "category.exposure": "Exposure",
   "command.exposure.export.failure.cannot_get_all_ids": "No se pueden obtener las IDs de las exposiciones. No hay exposiciones guardadas u ocurrió algún error.",
   "command.exposure.export.failure.none_saved": "No se exportaron exposiciones.",

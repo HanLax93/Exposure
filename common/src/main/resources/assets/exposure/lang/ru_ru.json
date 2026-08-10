@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "Сфотографируйте всех диких животных",
   "advancement.exposure.wildlife_archivist.title": "Архивы дикой природы",
   "block.exposure.lightroom": "Фотолаборатория",
+  "item.exposure.lightroom": "Фотолаборатория",
   "category.exposure": "Экспозиция",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "Не удалось создать хроматическую экспозицию: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "Захвачено недостаточно кадров. Требуется 3.",

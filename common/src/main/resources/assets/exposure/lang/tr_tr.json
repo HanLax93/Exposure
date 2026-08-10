@@ -24,6 +24,7 @@
   "advancement.exposure.wildlife_archivist.description": "Her vahşi hayvanın fotoğrafını çek",
   "advancement.exposure.wildlife_archivist.title": "Vahşi Yaşam Arşivcisi",
   "block.exposure.lightroom": "Işık Odası",
+  "item.exposure.lightroom": "Işık Odası",
   "category.exposure": "Exposure",
   "command.exposure.export.failure.cannot_get_all_ids": "Poz kimlikleri alınamıyor. Hiçbir poz kaydedilmedi veya bir hata oluştu.",
   "command.exposure.export.failure.none_saved": "Hiçbir poz dışarı aktarılmadı.",

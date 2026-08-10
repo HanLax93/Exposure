@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "모든 야생 동물의 사진을 찍으세요",
   "advancement.exposure.wildlife_archivist.title": "야생 기록가",
   "block.exposure.lightroom": "라이트룸",
+  "item.exposure.lightroom": "라이트룸",
   "category.exposure": "Exposure",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "색 분리 사진 생성 실패: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "캡처한 프레임이 부족합니다. 3개가 필요합니다.",

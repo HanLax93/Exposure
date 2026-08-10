@@ -26,6 +26,7 @@
   "advancement.exposure.wildlife_archivist.description": "Fotografía a todos los animales salvajes",
   "advancement.exposure.wildlife_archivist.title": "Archivista de Vida Silvestre",
   "block.exposure.lightroom": "Cuarto Oscuro",
+  "item.exposure.lightroom": "Cuarto Oscuro",
   "category.exposure": "Exposure",
   "command.exposure.debug.develop.fail.wrong_item": "El jugador debe sostener un Rollo de Película en la mano.",
   "command.exposure.debug.develop.success": "Desarrollado %s",

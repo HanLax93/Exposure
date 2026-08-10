@@ -24,6 +24,7 @@
   "advancement.exposure.wildlife_archivist.description": "Photographier chaque animal sauvage",
   "advancement.exposure.wildlife_archivist.title": "Inventaire de la faune",
   "block.exposure.lightroom": "Chambre claire",
+  "item.exposure.lightroom": "Chambre claire",
   "category.exposure": "Exposure",
   "command.exposure.export.failure.cannot_get_all_ids": "Impossible d'obtenir les IDs d'exposition. Aucune exposition n'est enregistrée ou une erreur s'est produite.",
   "command.exposure.export.failure.none_saved": "Aucune exposition n'a été exportée.",

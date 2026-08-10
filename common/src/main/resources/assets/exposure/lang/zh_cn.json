@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "给每一种野生动物拍照",
   "advancement.exposure.wildlife_archivist.title": "野生动物档案员",
   "block.exposure.lightroom": "暗房",
+  "item.exposure.lightroom": "暗房",
   "category.exposure": "拾光定影",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "创建彩色底片失败：%s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "没有拍摄足够的张数：需要3",

@@ -24,6 +24,7 @@
     "advancement.exposure.wildlife_archivist.description": "Fotografiere jedes wilde Tier",
     "advancement.exposure.wildlife_archivist.title": "Wildtier-Archivar",
     "block.exposure.lightroom": "Lightroom",
+    "item.exposure.lightroom": "Lightroom",
     "category.exposure": "Exposure",
     "command.exposure.export.failure.cannot_get_all_ids": "Exposure-IDs können nicht abgerufen werden. Es sind keine Exposures gespeichert oder es ist ein Fehler aufgetreten.",
     "command.exposure.export.failure.none_saved": "Es wurden keine Exposures exportiert.",

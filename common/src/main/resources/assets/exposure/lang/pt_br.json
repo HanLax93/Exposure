@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "Fotografe todos os animais selvagens",
   "advancement.exposure.wildlife_archivist.title": "Arquivista da Vida Selvagem",
   "block.exposure.lightroom": "Sala Clara",
+  "item.exposure.lightroom": "Sala Clara",
   "category.exposure": "Exposição",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "Falha ao criar exposição cromática: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "Quadros capturados insuficientes. São necessários 3.",

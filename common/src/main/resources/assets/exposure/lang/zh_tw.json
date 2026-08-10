@@ -24,6 +24,7 @@
   "advancement.exposure.wildlife_archivist.description": "拍攝所有野生動物的照片",
   "advancement.exposure.wildlife_archivist.title": "野生動物檔案管理員",
   "block.exposure.lightroom": "影印台",
+  "item.exposure.lightroom": "影印台",
   "category.exposure": "曝光",
   "command.exposure.export.failure.cannot_get_all_ids": "無法取得曝光 ID。沒有儲存任何曝光或發生了一些錯誤。",
   "command.exposure.export.failure.none_saved": "沒有匯出任何曝光。",

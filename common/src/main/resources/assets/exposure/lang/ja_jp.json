@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "全ての野生動物を撮影する",
   "advancement.exposure.wildlife_archivist.title": "野生生物記録者",
   "block.exposure.lightroom": "現像台",
+  "item.exposure.lightroom": "現像台",
   "category.exposure": "exposure",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "画像の作成に失敗しました: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "キャプチャされたフレームが不足しています。3フレーム必要です",

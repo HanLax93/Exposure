@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "Сфотографуйте кожну дику тварину",
   "advancement.exposure.wildlife_archivist.title": "Документаліст дикої природи",
   "block.exposure.lightroom": "Лайтрум",
+  "item.exposure.lightroom": "Лайтрум",
   "category.exposure": "Exposure",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "Неможливо створити барвисту експозицію: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "Недостатньо кадрів. Для барвистої експозиції потрібно 3.",

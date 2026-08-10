@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "Fotografiá a todos los animales salvajes",
   "advancement.exposure.wildlife_archivist.title": "Archivista de la Fauna",
   "block.exposure.lightroom": "Cuarto Oscuro",
+  "item.exposure.lightroom": "Cuarto Oscuro",
   "category.exposure": "Exposición",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "No se pudo crear la exposición cromática: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "No se capturaron suficientes fotogramas. Se necesitan 3.",

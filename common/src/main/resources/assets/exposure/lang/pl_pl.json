@@ -28,6 +28,7 @@
 "advancement.exposure.wildlife_archivist.description": "Sfotografuj każde dzikie zwierzę",
 "advancement.exposure.wildlife_archivist.title": "Archiwista dzikiej przyrody",
 "block.exposure.lightroom": "Świetlarnia",
+"item.exposure.lightroom": "Świetlarnia",
 "category.exposure": "Ekspozycja",
 "command.exposure.debug.chromatic_from_last_three.fail.error": "Nie udało się utworzyć chromatycznej ekspozycji: %s",
 "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "Nie przechwycono wystarczającej liczby klatek. Wymagane są 3.",

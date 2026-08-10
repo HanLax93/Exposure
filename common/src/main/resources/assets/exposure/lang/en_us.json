@@ -28,6 +28,7 @@
   "advancement.exposure.wildlife_archivist.description": "Photograph every wild animal",
   "advancement.exposure.wildlife_archivist.title": "Wildlife Archivist",
   "block.exposure.lightroom": "Lightroom",
+  "item.exposure.lightroom": "Lightroom",
   "category.exposure": "Exposure",
   "command.exposure.debug.chromatic_from_last_three.fail.error": "Failed to create chromatic exposure: %s",
   "command.exposure.debug.chromatic_from_last_three.fail.not_enough_frames": "Not enough frames captured. 3 is required.",
