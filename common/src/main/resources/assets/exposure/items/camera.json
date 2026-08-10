@@ -1,0 +1,55 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": {
+          "type": "minecraft:condition",
+          "property": "minecraft:has_component",
+          "component": "exposure:camera_gold",
+          "ignore_default": true,
+          "on_true": { "type": "minecraft:model", "model": "exposure:item/camera_gold_gui" },
+          "on_false": { "type": "minecraft:model", "model": "exposure:item/camera_gui" }
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:condition",
+      "property": "minecraft:has_component",
+      "component": "exposure:camera_gold",
+      "ignore_default": true,
+      "on_true": {
+        "type": "minecraft:condition",
+        "property": "minecraft:has_component",
+        "component": "exposure:camera_active",
+        "ignore_default": true,
+        "on_true": { "type": "minecraft:model", "model": "exposure:item/camera_gold_active", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] },
+        "on_false": {
+          "type": "minecraft:condition",
+          "property": "minecraft:has_component",
+          "component": "exposure:camera_selfie_mode",
+          "ignore_default": true,
+          "on_true": { "type": "minecraft:model", "model": "exposure:item/camera_gold_selfie", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] },
+          "on_false": { "type": "minecraft:model", "model": "exposure:item/camera_gold", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] }
+        }
+      },
+      "on_false": {
+        "type": "minecraft:condition",
+        "property": "minecraft:has_component",
+        "component": "exposure:camera_active",
+        "ignore_default": true,
+        "on_true": { "type": "minecraft:model", "model": "exposure:item/camera_active", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] },
+        "on_false": {
+          "type": "minecraft:condition",
+          "property": "minecraft:has_component",
+          "component": "exposure:camera_selfie_mode",
+          "ignore_default": true,
+          "on_true": { "type": "minecraft:model", "model": "exposure:item/camera_selfie", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] },
+          "on_false": { "type": "minecraft:model", "model": "exposure:item/camera", "tints": [{ "type": "minecraft:constant", "value": -1 }, { "type": "exposure:camera_glass" }] }
+        }
+      }
+    }
+  }
+}
