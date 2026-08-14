@@ -10,6 +10,8 @@ import io.github.mortuusars.exposure.util.UnixTimestamp;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.SavedDataStorage;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -34,6 +38,7 @@ public class ExposureRepository {
     protected final MinecraftServer server;
     protected final SavedDataStorage dataStorage;
     protected final Path worldFolderPath;
+    protected final Path dataFolderPath;
     protected final Path exposuresFolderPath;
 
     protected final Map<ServerPlayer, Set<ExpectedExposure>> expectedExposures = new HashMap<>();
@@ -42,7 +47,13 @@ public class ExposureRepository {
         this.server = server;
         this.dataStorage = server.overworld().getDataStorage();
         this.worldFolderPath = server.getWorldPath(LevelResource.ROOT);
-        this.exposuresFolderPath = worldFolderPath.resolve("data/" + Exposure.ID + "/" + EXPOSURES_DIRECTORY_NAME);
+        // Minecraft 26.2: SavedData 按维度分目录存储。
+        // dataFolder = DimensionType.getStorageFolder(overworld, worldRoot).resolve("data")
+        //            = world/dimensions/minecraft/overworld/data
+        this.dataFolderPath = DimensionType.getStorageFolder(Level.OVERWORLD, worldFolderPath).resolve("data");
+        this.exposuresFolderPath = dataFolderPath.resolve(Exposure.ID + "/" + EXPOSURES_DIRECTORY_NAME);
+        // 将旧版本（1.21.x 等）保存在世界根 data/ 目录下的数据迁移到 26.2 的维度目录
+        migrateLegacyFiles();
     }
 
     public List<String> getAllIds() {
@@ -199,6 +210,68 @@ public class ExposureRepository {
         } catch (Exception e) {
             LOGGER.error("Failed to create exposure storage directory: {}", e.toString());
             return false;
+        }
+    }
+
+    /**
+     * 将旧版本（1.21.x 等）存储在旧位置的数据自动迁移到 26.2 的维度数据目录。
+     * 照片老位置：world/data/exposures（1.21.1）与 world/data/exposure/exposures（部分中间版本）。
+     * 帧历史老位置：world/data/exposure_frame_history.dat。
+     */
+    private void migrateLegacyFiles() {
+        // 照片：1.21.1 老路径 data/exposures
+        migrateLegacyExposureFiles(worldFolderPath.resolve("data/" + EXPOSURES_DIRECTORY_NAME));
+        // 照片：带 exposure 命名空间的旧路径 data/exposure/exposures
+        migrateLegacyExposureFiles(worldFolderPath.resolve("data/" + Exposure.ID + "/" + EXPOSURES_DIRECTORY_NAME));
+        // 帧历史：老文件 exposure_frame_history.dat（1.21.1）
+        migrateLegacyFrameHistory(worldFolderPath.resolve("data/exposure_frame_history.dat"));
+        // 帧历史：带 exposure 命名空间的旧路径
+        migrateLegacyFrameHistory(worldFolderPath.resolve("data/" + Exposure.ID + "/exposure_frame_history.dat"));
+    }
+
+    private void migrateLegacyExposureFiles(Path legacyFolder) {
+        if (legacyFolder == null || !Files.isDirectory(legacyFolder)) {
+            return;
+        }
+
+        try {
+            ensureExposuresDirectoryExists();
+            List<Path> legacyFiles;
+            try (Stream<Path> stream = Files.list(legacyFolder)) {
+                legacyFiles = stream.filter(Files::isRegularFile)
+                        .filter(p -> p.getFileName().toString().endsWith(".dat"))
+                        .toList();
+            }
+
+            for (Path file : legacyFiles) {
+                Path dest = exposuresFolderPath.resolve(file.getFileName());
+                if (Files.exists(dest)) {
+                    continue; // 目标位置已有同 id 数据，不覆盖
+                }
+                Files.move(file, dest, StandardCopyOption.REPLACE_EXISTING);
+                LOGGER.info("Migrated legacy exposure file '{}' to '{}'.", file, dest);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to migrate legacy exposure files from '{}': {}", legacyFolder, e.toString());
+        }
+    }
+
+    private void migrateLegacyFrameHistory(Path legacyFile) {
+        if (legacyFile == null || !Files.isRegularFile(legacyFile)) {
+            return;
+        }
+
+        try {
+            Path destFolder = dataFolderPath.resolve(Exposure.ID);
+            Files.createDirectories(destFolder);
+            Path dest = destFolder.resolve(ExposureFrameHistory.TYPE.id().getPath() + ".dat");
+            if (Files.exists(dest)) {
+                return; // 目标已有帧历史，不覆盖
+            }
+            Files.move(legacyFile, dest, StandardCopyOption.REPLACE_EXISTING);
+            LOGGER.info("Migrated legacy frame history file '{}' to '{}'.", legacyFile, dest);
+        } catch (IOException e) {
+            LOGGER.error("Failed to migrate legacy frame history file '{}': {}", legacyFile, e.toString());
         }
     }
 }
