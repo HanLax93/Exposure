@@ -389,6 +389,11 @@ public class PhotographFrameEntity extends HangingEntity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Must define the parent's (HangingEntity) synched data, otherwise
+        // SynchedEntityData.Builder.build() throws "Entity class ... has not
+        // defined synched data value 8" and photograph frame entities fail to
+        // load on Minecraft 26.2.
+        super.defineSynchedData(builder);
         builder.define(DATA_SIZE, 0);
         builder.define(DATA_FRAME_ITEM, ItemStack.EMPTY);
         builder.define(DATA_ITEM, ItemStack.EMPTY);
