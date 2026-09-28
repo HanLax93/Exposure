@@ -389,6 +389,10 @@ public class PhotographFrameEntity extends HangingEntity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        // Fix for 26.2: must define the parent (HangingEntity.DATA_ID) data or
+        // SynchedEntityData.Builder.build() throws "has not defined synched data value 8",
+        // which caused all photograph frame entities to fail loading.
+        super.defineSynchedData(builder);
         builder.define(DATA_SIZE, 0);
         builder.define(DATA_FRAME_ITEM, ItemStack.EMPTY);
         builder.define(DATA_ITEM, ItemStack.EMPTY);

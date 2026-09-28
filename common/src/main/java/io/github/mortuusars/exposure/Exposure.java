@@ -130,6 +130,33 @@ public class Exposure {
                         .noCollision()
                         .lightLevel(state -> 15)));
 
+        // Hidden dummy blocks used only to drive the block-model renderer for photograph frames
+        // (26.2 renders hanging frames via BlockModelResolver, which requires a BlockState).
+        public static final Supplier<net.minecraft.world.level.block.Block> PHOTOGRAPH_FRAME_SMALL =
+                Register.block("photograph_frame_small", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+        public static final Supplier<net.minecraft.world.level.block.Block> PHOTOGRAPH_FRAME_MEDIUM =
+                Register.block("photograph_frame_medium", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+        public static final Supplier<net.minecraft.world.level.block.Block> PHOTOGRAPH_FRAME_LARGE =
+                Register.block("photograph_frame_large", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+        public static final Supplier<net.minecraft.world.level.block.Block> GLASS_PHOTOGRAPH_FRAME_SMALL =
+                Register.block("glass_photograph_frame_small", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+        public static final Supplier<net.minecraft.world.level.block.Block> GLASS_PHOTOGRAPH_FRAME_MEDIUM =
+                Register.block("glass_photograph_frame_medium", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+        public static final Supplier<net.minecraft.world.level.block.Block> GLASS_PHOTOGRAPH_FRAME_LARGE =
+                Register.block("glass_photograph_frame_large", key -> new net.minecraft.world.level.block.Block(
+                        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.AIR).setId(key)
+                                .noLootTable().noOcclusion().noCollision()));
+
         static void init() {
         }
     }

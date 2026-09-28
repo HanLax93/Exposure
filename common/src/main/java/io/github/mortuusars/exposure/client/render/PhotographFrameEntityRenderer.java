@@ -3,16 +3,20 @@ package io.github.mortuusars.exposure.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.github.mortuusars.exposure.Config;
+import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.ExposureClient;
 import io.github.mortuusars.exposure.client.image.modifier.ImageEffect;
 import io.github.mortuusars.exposure.client.image.renderable.RenderableImage;
 import io.github.mortuusars.exposure.client.render.image.RenderCoordinates;
 import io.github.mortuusars.exposure.client.render.photograph.PhotographStyle;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
+import io.github.mortuusars.exposure.world.entity.GlassPhotographFrameEntity;
 import io.github.mortuusars.exposure.world.entity.PhotographFrameEntity;
 import io.github.mortuusars.exposure.world.item.PhotographItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemModelResolver;
@@ -25,16 +29,22 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.NotNull;
 
 public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
         extends EntityRenderer<T, PhotographFrameRenderState> {
+    private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
+
     private final ItemModelResolver itemModelResolver;
+    private final BlockModelResolver blockModelResolver;
 
     public PhotographFrameEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemModelResolver = context.getItemModelResolver();
+        this.blockModelResolver = context.getBlockModelResolver();
     }
 
     @Override
@@ -62,8 +72,9 @@ public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
         state.image = null;
 
         if (!state.frameInvisible) {
-            itemModelResolver.updateForNonLiving(state.frame,
-                    new ItemStack(entity.getBaseFrameItem()), ItemDisplayContext.FIXED, entity);
+            // 26.2 renders hanging frames through block models (like vanilla ItemFrame).
+            // Load the per-size block model via BlockModelResolver.
+            blockModelResolver.update(state.frame, frameBlockFor(entity), BLOCK_DISPLAY_CONTEXT);
         } else {
             state.frame.clear();
         }
@@ -113,14 +124,28 @@ public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
 
         if (!state.frame.isEmpty()) {
             poseStack.pushPose();
-            poseStack.translate(0, 0, -0.01f);
-            float frameScale = state.size + 1;
-            poseStack.scale(frameScale, frameScale, frameScale);
+            // The block model is drawn relative to the block origin (0,0,0), while the
+            // photograph is drawn centred on the entity. Shift the frame so its centre
+            // (0.5, 0.5, ~1.0 in block units) aligns with the entity centre.
+            poseStack.translate(-0.5F, -0.5F, -0.5F);
             state.frame.submit(poseStack, collector, state.lightCoords,
                     OverlayTexture.NO_OVERLAY, state.outlineColor);
             poseStack.popPose();
         }
         poseStack.popPose();
+    }
+
+    private BlockState frameBlockFor(T entity) {
+        boolean glass = entity instanceof GlassPhotographFrameEntity;
+        Block block = switch (entity.getSize()) {
+            case 0 -> glass ? Exposure.Blocks.GLASS_PHOTOGRAPH_FRAME_SMALL.get()
+                            : Exposure.Blocks.PHOTOGRAPH_FRAME_SMALL.get();
+            case 1 -> glass ? Exposure.Blocks.GLASS_PHOTOGRAPH_FRAME_MEDIUM.get()
+                            : Exposure.Blocks.PHOTOGRAPH_FRAME_MEDIUM.get();
+            default -> glass ? Exposure.Blocks.GLASS_PHOTOGRAPH_FRAME_LARGE.get()
+                            : Exposure.Blocks.PHOTOGRAPH_FRAME_LARGE.get();
+        };
+        return block.defaultBlockState();
     }
 
     private void submitPhotograph(PhotographFrameRenderState state, PoseStack poseStack,
