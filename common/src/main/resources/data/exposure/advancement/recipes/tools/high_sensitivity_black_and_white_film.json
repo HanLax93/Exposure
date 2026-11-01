@@ -20,7 +20,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:high_sensitivity_black_and_white_film"
+        "recipes": ["exposure:high_sensitivity_black_and_white_film"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

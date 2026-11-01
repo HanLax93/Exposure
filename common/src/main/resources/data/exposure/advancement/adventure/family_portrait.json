@@ -8,32 +8,32 @@
         },
         "entities_in_frame": [
           {
-            "minecraft:entity_type": "minecraft:player"
+            "type": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "minecraft:entity_type": "minecraft:player"
+            }
           },
-          [
-            {
-              "condition": "minecraft:entity_properties",
-              "entity": "this",
-              "predicate": {
-                "minecraft:entity_type": "minecraft:cat",
-                "exposure:tamed": {
-                  "is_tamed": true
-                }
+          {
+            "type": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "minecraft:entity_type": "minecraft:cat",
+              "exposure:tamed": {
+                "is_tamed": true
               }
             }
-          ],
-          [
-            {
-              "condition": "minecraft:entity_properties",
-              "entity": "this",
-              "predicate": {
-                "minecraft:entity_type": "minecraft:wolf",
-                "exposure:tamed": {
-                  "is_tamed": true
-                }
+          },
+          {
+            "type": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "minecraft:entity_type": "minecraft:wolf",
+              "exposure:tamed": {
+                "is_tamed": true
               }
             }
-          ]
+          }
         ]
       },
       "trigger": "exposure:frame_exposed"

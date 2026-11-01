@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:photograph_copying_color"
+        "recipes": ["exposure:photograph_copying_color"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

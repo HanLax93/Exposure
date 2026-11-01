@@ -17,7 +17,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:glass_photograph_frame"
+        "recipes": ["exposure:glass_photograph_frame"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

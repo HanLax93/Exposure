@@ -20,7 +20,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:interplanar_projector"
+        "recipes": ["exposure:interplanar_projector"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

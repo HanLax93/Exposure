@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:lightroom"
+        "recipes": ["exposure:lightroom"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

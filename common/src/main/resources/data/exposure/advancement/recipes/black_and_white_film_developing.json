@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:black_and_white_film_developing"
+        "recipes": ["exposure:black_and_white_film_developing"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

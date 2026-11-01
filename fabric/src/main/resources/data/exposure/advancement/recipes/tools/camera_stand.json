@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:camera_stand"
+        "recipes": ["exposure:camera_stand"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

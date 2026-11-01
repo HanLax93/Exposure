@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "exposure:color_film"
+        "recipes": ["exposure:color_film"]
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -5,9 +5,13 @@
       "conditions": {
         "entities_in_frame": [
           {
-            "minecraft:entity_type": "minecraft:skeleton",
-            "minecraft:vehicle": {
-              "minecraft:entity_type": "minecraft:spider"
+            "type": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "minecraft:entity_type": "minecraft:skeleton",
+              "minecraft:vehicle": {
+                "minecraft:entity_type": "minecraft:spider"
+              }
             }
           }
         ]
