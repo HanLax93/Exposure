@@ -407,7 +407,7 @@ public class LightroomScreen extends AbstractContainerScreen<LightroomMenu> {
         double mouseX = event.x();
         double mouseY = event.y();
         int button = event.button();
-        if (button == 0) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             if (isOverCenterFrame((int) mouseX, (int) mouseY)) {
                 enterFrameInspectMode();
                 return true;
@@ -446,12 +446,13 @@ public class LightroomScreen extends AbstractContainerScreen<LightroomMenu> {
      */
     public boolean handleFilmSlotTabClick(net.minecraft.client.input.MouseButtonEvent event) {
         int button = event.button();
-        if (!isOverFilmSlotTab(event.x(), event.y()) || (button != 0 && button != 1)) {
+        if (!isOverFilmSlotTab(event.x(), event.y())
+                || (button != InputConstants.MOUSE_BUTTON_LEFT && button != InputConstants.MOUSE_BUTTON_RIGHT)) {
             return false;
         }
 
         Slot filmSlot = getMenu().getSlot(Lightroom.FILM_SLOT);
-        if (button == 0 && !hasShownDevelopingToast && !filmSlot.hasItem()
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && !hasShownDevelopingToast && !filmSlot.hasItem()
                 && getMenu().getCarried().getItem() instanceof FilmRollItem) {
             Minecrft.get().gui.toastManager().addToast(new BetterTutorialToast(ToastIcon.HEADS_UP,
                     Component.translatable("gui.exposure.lightroom.toast.develop_film.title"),
@@ -460,7 +461,9 @@ public class LightroomScreen extends AbstractContainerScreen<LightroomMenu> {
         }
 
         ContainerInput input = event.hasShiftDown() ? ContainerInput.QUICK_MOVE : ContainerInput.PICKUP;
-        slotClicked(filmSlot, filmSlot.index, button, input);
+        // SDL reports mouse buttons as 1/3, while container slot packets still use 0/1.
+        int containerButton = button == InputConstants.MOUSE_BUTTON_RIGHT ? 1 : 0;
+        slotClicked(filmSlot, filmSlot.index, containerButton, input);
         // slotClicked completes the interaction immediately. Consume the matching
         // release so it cannot become a second click that puts the film back.
         filmSlotClickHandled = true;
