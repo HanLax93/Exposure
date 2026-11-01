@@ -38,6 +38,7 @@ public class FilmFrameInspectScreen extends Screen {
     public static final int FRAME_SIZE = 54;
 
     protected final Pager pager = new Pager()
+            .setChangeCooldown(0)
             .setChangeSound(new SoundEffect(Exposure.SoundEvents.CAMERA_LENS_RING_CLICK))
             .onPageChanged(this::pageChanged);
 
@@ -50,11 +51,7 @@ public class FilmFrameInspectScreen extends Screen {
     protected final KeyBindings keyBindings = KeyBindings.of(
             Key.press(Minecrft.options().keyInventory).executes(this::onClose),
             Key.press(InputConstants.KEY_ADD).or(Key.press(InputConstants.KEY_EQUALS)).executes(zoom::zoomIn),
-            Key.press(InputConstants.KEY_MINUS).executes(zoom::zoomOut),
-            Key.press(InputConstants.KEY_LEFT).or(Key.press(InputConstants.KEY_A)).executes(pager::previousPage),
-            Key.press(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::nextPage),
-            Key.release(InputConstants.KEY_LEFT).or(Key.press(InputConstants.KEY_A)).executes(pager::resetCooldown),
-            Key.release(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::resetCooldown)
+            Key.press(InputConstants.KEY_MINUS).executes(zoom::zoomOut)
     );
 
     protected final List<Frame> frames;
@@ -155,9 +152,12 @@ public class FilmFrameInspectScreen extends Screen {
 
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
-        int keyCode = event.key();
-        int scanCode = event.keycode();
-        int modifiers = event.modifiers();
+        if ((event.isLeft() || event.key() == InputConstants.KEY_A) && pager.previousPage()) {
+            return true;
+        }
+        if ((event.isRight() || event.key() == InputConstants.KEY_D) && pager.nextPage()) {
+            return true;
+        }
         return keyBindings.keyPressed(event) || super.keyPressed(event);
     }
 
