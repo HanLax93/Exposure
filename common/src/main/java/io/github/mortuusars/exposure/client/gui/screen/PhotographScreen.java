@@ -46,8 +46,8 @@ import java.util.function.Supplier;
 public class PhotographScreen extends Screen {
     protected final Pager pager = new Pager()
             .setCycled(true)
-            .setChangeSound(new SoundEffect(Exposure.SoundEvents.CAMERA_LENS_RING_CLICK))
-            .onPageChanged(this::pageChanged);
+            .setChangeCooldown(0)
+            .setChangeSound(new SoundEffect(Exposure.SoundEvents.CAMERA_LENS_RING_CLICK));
 
     protected final SteppedZoom zoom = new SteppedZoom()
             .zoomInSteps(4)
@@ -64,9 +64,7 @@ public class PhotographScreen extends Screen {
             Key.press(Modifier.CONTROL | Modifier.SHIFT, InputConstants.KEY_C).executes(this::copySavedFilePathToClipboard),
             Key.press(Modifier.CONTROL, InputConstants.KEY_S).executes(this::openSavedFile),
             Key.press(InputConstants.KEY_LEFT).or(Key.press(InputConstants.KEY_A)).executes(pager::previousPage),
-            Key.press(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::nextPage),
-            Key.release(InputConstants.KEY_LEFT).or(Key.release(InputConstants.KEY_A)).executes(pager::resetCooldown),
-            Key.release(InputConstants.KEY_RIGHT).or(Key.release(InputConstants.KEY_D)).executes(pager::resetCooldown)
+            Key.press(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::nextPage)
     );
 
     protected final PhotographProvider photographProvider;
@@ -104,7 +102,6 @@ public class PhotographScreen extends Screen {
 
         int selectedIndex = selectedFrame.equals(Frame.EMPTY) ? 0 : findFrameIndex(selectedFrame);
         this.pager.setPage(selectedIndex);
-        Collections.rotate(this.photographs, -selectedIndex);
     }
 
     protected int findFrameIndex(Frame frame) {
@@ -155,12 +152,19 @@ public class PhotographScreen extends Screen {
     }
 
     public ItemAndStack<PhotographItem> getCurrentPhotograph() {
-        return photographs.getFirst();
+        return photographs.get(pager.getPage());
     }
 
-    protected void pageChanged(int oldPage, int newPage) {
-        int distance = newPage - oldPage;
-        Collections.rotate(photographs, -distance);
+    protected List<ItemAndStack<PhotographItem>> getPhotographsForRendering() {
+        if (pager.getPage() == 0) {
+            return photographs;
+        }
+
+        ArrayList<ItemAndStack<PhotographItem>> orderedPhotographs = new ArrayList<>(photographs.size());
+        for (int i = 0; i < photographs.size(); i++) {
+            orderedPhotographs.add(photographs.get((pager.getPage() + i) % photographs.size()));
+        }
+        return orderedPhotographs;
     }
 
     @Override
@@ -177,7 +181,7 @@ public class PhotographScreen extends Screen {
         guiGraphics.pose().scale(scale, scale);
         guiGraphics.pose().translate(-0.5f, -0.5f);
 
-        ExposureClient.photographRenderer().extractStackedPhotographs(photographs, guiGraphics, Color.WHITE);
+        ExposureClient.photographRenderer().extractStackedPhotographs(getPhotographsForRendering(), guiGraphics, Color.WHITE);
         guiGraphics.pose().popMatrix();
 
         ItemAndStack<PhotographItem> photograph = getCurrentPhotograph();
@@ -236,9 +240,14 @@ public class PhotographScreen extends Screen {
 
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
-        int keyCode = event.key();
-        int scanCode = event.keycode();
-        int modifiers = event.modifiers();
+        if ((event.isLeft() || event.key() == InputConstants.KEY_A)
+                && pager.previousPage()) {
+            return true;
+        }
+        if ((event.isRight() || event.key() == InputConstants.KEY_D)
+                && pager.nextPage()) {
+            return true;
+        }
         return keyBindings.keyPressed(event) || super.keyPressed(event);
     }
 
