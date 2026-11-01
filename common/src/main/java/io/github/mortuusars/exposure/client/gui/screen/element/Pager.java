@@ -99,7 +99,7 @@ public class Pager {
     }
 
     public boolean changePage(int page) {
-        page = Mth.clamp(page, 0, this.pagesCount);
+        page = Mth.clamp(page, 0, Math.max(0, this.pagesCount - 1));
         int oldPage = currentPage;
         if (currentPage == page) {
             return false;
@@ -113,7 +113,7 @@ public class Pager {
      * Sets page without side effects (except button visibility). Useful when setting up starting page.
      */
     public void setPage(int index) {
-        currentPage = Mth.clamp(index, 0, this.pagesCount);
+        currentPage = Mth.clamp(index, 0, Math.max(0, this.pagesCount - 1));
         updateButtonVisibility();
     }
 

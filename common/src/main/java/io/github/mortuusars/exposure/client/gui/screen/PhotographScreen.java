@@ -30,6 +30,7 @@ import net.minecraft.util.Util;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -64,8 +65,8 @@ public class PhotographScreen extends Screen {
             Key.press(Modifier.CONTROL, InputConstants.KEY_S).executes(this::openSavedFile),
             Key.press(InputConstants.KEY_LEFT).or(Key.press(InputConstants.KEY_A)).executes(pager::previousPage),
             Key.press(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::nextPage),
-            Key.release(InputConstants.KEY_LEFT).or(Key.press(InputConstants.KEY_A)).executes(pager::resetCooldown),
-            Key.release(InputConstants.KEY_RIGHT).or(Key.press(InputConstants.KEY_D)).executes(pager::resetCooldown)
+            Key.release(InputConstants.KEY_LEFT).or(Key.release(InputConstants.KEY_A)).executes(pager::resetCooldown),
+            Key.release(InputConstants.KEY_RIGHT).or(Key.release(InputConstants.KEY_D)).executes(pager::resetCooldown)
     );
 
     protected final PhotographProvider photographProvider;
@@ -93,10 +94,27 @@ public class PhotographScreen extends Screen {
     }
 
     protected void setPhotographs(List<ItemAndStack<PhotographItem>> photographs) {
+        Frame selectedFrame = this.photographs.isEmpty()
+                ? Frame.EMPTY
+                : getCurrentPhotograph().getItem().getFrame(getCurrentPhotograph().getItemStack());
+
         this.photographs.clear();
         this.photographs.addAll(photographs);
         this.pager.setPagesCount(photographs.size());
-        this.pager.setPage(0);
+
+        int selectedIndex = selectedFrame.equals(Frame.EMPTY) ? 0 : findFrameIndex(selectedFrame);
+        this.pager.setPage(selectedIndex);
+        Collections.rotate(this.photographs, -selectedIndex);
+    }
+
+    protected int findFrameIndex(Frame frame) {
+        for (int i = 0; i < photographs.size(); i++) {
+            ItemAndStack<PhotographItem> photograph = photographs.get(i);
+            if (photograph.getItem().getFrame(photograph.getItemStack()).equals(frame)) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     @Override
@@ -230,6 +248,23 @@ public class PhotographScreen extends Screen {
         int scanCode = event.keycode();
         int modifiers = event.modifiers();
         return keyBindings.keyReleased(event) || super.keyReleased(event);
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT
+                && event.y() >= height / 2d - 8d
+                && event.y() < height / 2d + 8d) {
+            if (event.x() >= 0d && event.x() < 16d) {
+                pager.previousPage();
+                return true;
+            }
+            if (event.x() >= width - 16d && event.x() < width) {
+                pager.nextPage();
+                return true;
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
