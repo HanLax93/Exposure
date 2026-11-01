@@ -1,5 +1,5 @@
 // Architectury Plugin 3.x still looks up this legacy task while configuring its
-// common-source transformer. Minecraft 26.2 is unobfuscated, so no remapping is
+// common-source transformer. Minecraft 26.2+ is unobfuscated, so no remapping is
 // performed; the placeholder keeps the transformer configuration available.
 tasks.register("remapJar", net.fabricmc.loom.task.RemapJarTask)
 
@@ -8,7 +8,7 @@ architectury {
 }
 
 // Architectury 3.4 asks Loom for obfuscation mappings while calculating these
-// task properties. Minecraft 26.2 ships unobfuscated, so Loom intentionally has
+// task properties. Minecraft 26.2+ ships unobfuscated, so Loom intentionally has
 // no mapping configuration. Supply the equivalent transformer properties with
 // an empty mixin-mapping path while retaining @ExpectPlatform transformation.
 tasks.named("transformProductionFabric").configure {
@@ -44,8 +44,6 @@ dependencies {
     compileOnlyApi "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 
     compileOnly("curse.maven:real-camera-851574:${realcamera_neoforge_id}")
-    compileOnly("maven.modrinth:easy-anvils:${easy_anvils_modrinth_neoforge_version}")
-
     testImplementation(platform("org.junit:junit-bom:${project.property("jupiterVersion")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

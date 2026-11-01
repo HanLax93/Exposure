@@ -135,6 +135,8 @@ subprojects {
         var expandProps = [
                 minecraft_version            : minecraft_version,
                 minecraft_version_range      : minecraft_version_range,
+                fabric_loader_version        : fabric_loader_version,
+                forge_config_api_port_version: forge_config_api_port_version,
                 neoforge_version             : neoforge_version,
                 neoforge_version_range       : neoforge_version_range,
                 neoforge_loader_version_range: neoforge_loader_version_range,
