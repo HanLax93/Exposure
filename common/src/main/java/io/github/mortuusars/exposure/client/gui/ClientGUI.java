@@ -14,6 +14,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -96,19 +97,19 @@ public class ClientGUI {
         tooltipComponents.accept(Component.translatable(detailsKey).withStyle(orange));
 
         for (int i = 0; i < ingredients.size(); i++) {
-            ItemStack[] stacks = ingredients.get(i).items()
-                    .map(holder -> new ItemStack(holder.value()))
-                    .toArray(ItemStack[]::new);
+            // Ingredient.items() only exposes item types and drops component constraints.
+            // Resolve the display instead so potion contents (awkward/thick/mundane) survive.
+            List<ItemStack> stacks = ingredients.get(i).display().resolveForStacks(ContextMap.EMPTY);
 
-            if (stacks.length == 0)
+            if (stacks.isEmpty())
                 tooltipComponents.accept(Component.literal("  ").append(Component.literal("?").withStyle(yellow)));
-            else if (stacks.length == 1)
-                tooltipComponents.accept(Component.literal("  ").append(stacks[0].getHoverName().copy().withStyle(yellow)));
+            else if (stacks.size() == 1)
+                tooltipComponents.accept(Component.literal("  ").append(stacks.getFirst().getHoverName().copy().withStyle(yellow)));
             else { // Cycle stacks if it's not one:
-                int val = (int) Math.ceil((Minecraft.getInstance().level.getGameTime() + 10 * i) % (20f * stacks.length) / 20f);
-                int index = Mth.clamp(val - 1, 0, stacks.length - 1);
+                int val = (int) Math.ceil((Minecraft.getInstance().level.getGameTime() + 10 * i) % (20f * stacks.size()) / 20f);
+                int index = Mth.clamp(val - 1, 0, stacks.size() - 1);
 
-                tooltipComponents.accept(Component.literal("  ").append(stacks[index].getHoverName().copy().withStyle(yellow)));
+                tooltipComponents.accept(Component.literal("  ").append(stacks.get(index).getHoverName().copy().withStyle(yellow)));
             }
         }
     }

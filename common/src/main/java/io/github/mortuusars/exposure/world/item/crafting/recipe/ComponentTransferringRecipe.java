@@ -4,7 +4,11 @@ import io.github.mortuusars.exposure.Exposure;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +48,17 @@ public class ComponentTransferringRecipe extends CustomRecipe {
 
     public @NotNull NonNullList<Ingredient> getIngredients() {
         return ingredients;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        List<SlotDisplay> inputs = placementIngredients.stream()
+                .map(Ingredient::display)
+                .toList();
+        return List.of(new ShapelessCraftingRecipeDisplay(
+                inputs,
+                new SlotDisplay.ItemStackSlotDisplay(result),
+                new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
     }
 
     @Override
