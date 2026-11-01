@@ -43,11 +43,11 @@ public class ItemAndStack<T extends Item> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ItemAndStack<?> that = (ItemAndStack<?>) o;
-        return Objects.equals(item, that.item) && Objects.equals(stack, that.stack);
+        return Objects.equals(item, that.item) && ItemStack.matches(stack, that.stack);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, stack);
+        return Objects.hash(item, stack.getCount(), ItemStack.hashItemAndComponents(stack));
     }
 }
