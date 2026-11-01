@@ -4,6 +4,11 @@
 - Updated localization files.
 - Fixed wrong config translation
 
+## 0.1.0 - 2026-11-02
+- Initial unofficial Fabric port for Minecraft 26.3, based on Exposure 1.9.18.
+- Migrated runtime, rendering, GUI, data, recipes, and advancements to Minecraft 26.3 APIs.
+- Fixed photograph capture, development, preview navigation, camera filters, and Lightroom interactions.
+
 ## 1.9.18 - 2026-06-10
 - Fixed Stacked Photographs item not behaving correctly in Refined Storage or Create Stock Ticker. 
 
