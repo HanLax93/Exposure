@@ -7,6 +7,9 @@
   "authors": [
     "${mod_authors}"
   ],
+  "contributors": [
+    "Mortuusars (original creator)"
+  ],
   "contact": {
     "homepage": "${mod_page}",
     "sources": "${mod_github}"

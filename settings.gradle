@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'Exposure'
+rootProject.name = 'Exposure-Unofficial'
 
 include 'common'
 include 'fabric'
