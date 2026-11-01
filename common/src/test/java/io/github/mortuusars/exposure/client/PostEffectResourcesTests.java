@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PostEffectResourcesTests {
     private static final List<String> EFFECTS = List.of(
@@ -30,6 +31,18 @@ class PostEffectResourcesTests {
                 PostChainConfig.CODEC.parse(JsonOps.INSTANCE, json)
                         .getOrThrow(error -> new IllegalArgumentException(path + ": " + error));
             }
+        }
+    }
+
+    @Test
+    void colorProcessorShaderUsesMinecraft26InterfaceLocations() throws Exception {
+        String path = "assets/exposure/shaders/post/exposure_color_processor.fsh";
+        try (var stream = getClass().getClassLoader().getResourceAsStream(path)) {
+            assertNotNull(stream, "Missing shader: " + path);
+            String source = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(source.contains("#extension GL_ARB_separate_shader_objects : require"));
+            assertTrue(source.contains("layout(location = 0) in vec2 texCoord;"));
+            assertTrue(source.contains("layout(location = 0) out vec4 fragColor;"));
         }
     }
 }
