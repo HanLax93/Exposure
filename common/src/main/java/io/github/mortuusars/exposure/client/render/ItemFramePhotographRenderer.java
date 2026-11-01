@@ -25,12 +25,12 @@ public class ItemFramePhotographRenderer {
         }
 
         // Snap to 90 degrees like a map.
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45 * itemFrame.rotation));
+        poseStack.rotateDegrees(Axis.ZP, 45 * itemFrame.rotation);
 
         float pixelSize = 0.0625f;
         float scale = 1f - pixelSize * 6; // 3px from each side
 
-        poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+        poseStack.rotateDegrees(Axis.ZP, 180.0F);
         poseStack.scale(scale, scale, scale);
         poseStack.translate(-0.5, -0.5, 0.045);
 

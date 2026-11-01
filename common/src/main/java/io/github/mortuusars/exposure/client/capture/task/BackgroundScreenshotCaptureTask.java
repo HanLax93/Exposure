@@ -60,7 +60,7 @@ public class BackgroundScreenshotCaptureTask extends Task<Result<Image>> {
             capturing = true;
 
             minecraft.gameRenderer.setRenderBlockOutline(false);
-            minecraft.gameRenderer.renderLevel(minecraft.getDeltaTracker());
+            minecraft.gameRenderer.renderLevel();
 
             applyShaderEffects(renderTarget);
 
@@ -84,8 +84,7 @@ public class BackgroundScreenshotCaptureTask extends Task<Result<Image>> {
 
     private void applyShaderEffects(RenderTarget renderTarget) {
         Minecraft minecraft = Minecraft.getInstance();
-        @Nullable net.minecraft.resources.Identifier effectId = minecraft.gameRenderer.currentPostEffect();
-        if (effectId != null) {
+        for (net.minecraft.resources.Identifier effectId : minecraft.gameRenderer.getRequestedPostEffects()) {
             @Nullable PostChain effect = minecraft.getShaderManager().getPostChain(effectId,
                     Set.of(PostChain.MAIN_TARGET_ID));
             if (effect != null) Shader.process(effect, renderTarget);

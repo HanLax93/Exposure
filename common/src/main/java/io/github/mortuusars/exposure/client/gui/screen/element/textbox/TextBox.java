@@ -183,7 +183,7 @@ public class TextBox extends AbstractWidget {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (!isFocused())
             return false;

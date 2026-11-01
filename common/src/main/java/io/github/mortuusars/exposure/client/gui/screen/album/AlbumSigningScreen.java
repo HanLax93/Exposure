@@ -125,7 +125,7 @@ public class AlbumSigningScreen extends Screen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (keyCode == InputConstants.KEY_TAB) {
             return super.keyPressed(event);

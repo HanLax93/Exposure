@@ -6,7 +6,6 @@ import io.github.mortuusars.exposure.client.capture.task.BackgroundScreenshotCap
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import io.github.mortuusars.exposure.client.util.Shader;
 import io.github.mortuusars.exposure.event.ClientEvents;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,9 +23,9 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel(Lnet/minecraft/client/DeltaTracker;)V",
+            target = "Lnet/minecraft/client/renderer/GameRenderer;renderLevel()V",
             shift = At.Shift.AFTER))
-    void onRender(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+    void onRender(CallbackInfo ci) {
         // Processing viewfinder shader should be done before capturing
         // otherwise Direct capture method will not be affected by it.
         Shader.processForGameRenderer();

@@ -55,7 +55,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SlotAccess;
-import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -924,7 +924,7 @@ public class CameraItem extends Item {
     }
 
     protected void entityCaptured(CameraHolder cameraHolder, ItemStack stack, LivingEntity entity) {
-        if (cameraHolder.asHolderEntity() instanceof ServerPlayer player && entity instanceof EnderMan enderMan) {
+        if (cameraHolder.asHolderEntity() instanceof ServerPlayer player && entity instanceof Enderman enderMan) {
             boolean lookingAtAngryEnderMan = player.equals(enderMan.getTarget())
                     && enderMan.isLookingAtMe(player, 0.025, true, false, enderMan.getEyeY());
 

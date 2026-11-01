@@ -175,7 +175,7 @@ public class PhotographSlotWidget extends AbstractWidget {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (this.active && this.visible && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER || keyCode == InputConstants.KEY_SPACE)) {
             if (Minecrft.get().hasShiftDown()) {

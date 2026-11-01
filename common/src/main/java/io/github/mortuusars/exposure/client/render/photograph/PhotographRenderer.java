@@ -80,7 +80,7 @@ public class PhotographRenderer {
         if (renderPaper && style.paperTexture() != ExposureClient.Textures.EMPTY) {
             poseStack.pushPose();
             poseStack.translate(0.5f, 0.5f, 0);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(paperRotation));
+            poseStack.rotateDegrees(Axis.ZP, paperRotation);
             poseStack.translate(-0.5f, -0.5f, 0);
 
             TextureRenderer.render(poseStack, collector, style.paperTexture(), packedLight, r, g, b, a);
@@ -89,11 +89,11 @@ public class PhotographRenderer {
 
             if (renderBackside) {
                 poseStack.pushPose();
-                poseStack.mulPose(Axis.YP.rotationDegrees(180));
+                poseStack.rotateDegrees(Axis.YP, 180);
                 poseStack.translate(-0.5, 0, -0.5);
 
                 poseStack.translate(0.5f, 0.5f, 0);
-                poseStack.mulPose(Axis.ZP.rotationDegrees(paperRotation));
+                poseStack.rotateDegrees(Axis.ZP, paperRotation);
                 poseStack.translate(-0.5f, -0.5f, 0);
 
                 TextureRenderer.render(poseStack, collector, style.paperTexture(),
@@ -118,7 +118,7 @@ public class PhotographRenderer {
             poseStack.pushPose();
 
             poseStack.translate(0.5f, 0.5f, 0);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(paperRotation));
+            poseStack.rotateDegrees(Axis.ZP, paperRotation);
             poseStack.translate(-0.5f, -0.5f, 0);
 
             poseStack.translate(0, 0, 0.002);
@@ -169,7 +169,7 @@ public class PhotographRenderer {
 
             Frame frame = photograph.getItem().getFrame(photograph.getItemStack());
             int rotation = frame.identifier().hashCode() % 4 * 90;
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rotation));
+            poseStack.rotateDegrees(Axis.ZP, rotation);
 
             poseStack.translate(-0.5f, -0.5f, 0);
 

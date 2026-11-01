@@ -33,7 +33,7 @@ public class ChildPhotographScreen extends PhotographScreen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (keyCode == InputConstants.KEY_ESCAPE || Minecrft.options().keyInventory.matches(event)) {
             onClose();

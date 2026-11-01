@@ -30,7 +30,7 @@ public class KeyBindings {
 
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         for (KeyBinding binding : bindings) {
             if (binding.matches(keyCode, scanCode, InputConstants.PRESS, modifiers) && binding.handler().get()) {
@@ -42,7 +42,7 @@ public class KeyBindings {
 
     public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         for (KeyBinding binding : bindings) {
             if (binding.matches(keyCode, scanCode, InputConstants.RELEASE, modifiers) && binding.handler().get()) {

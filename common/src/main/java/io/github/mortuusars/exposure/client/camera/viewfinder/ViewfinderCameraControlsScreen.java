@@ -220,7 +220,7 @@ public class ViewfinderCameraControlsScreen extends Screen {
             if (keyMapping.key.getType() == InputConstants.Type.MOUSE) {
                 keyMapping.setDown(MouseHandler.isMouseButtonHeld(keyMapping.key.getValue()));
             } else {
-                keyMapping.setDown(InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), keyMapping.key.getValue()));
+                keyMapping.setDown(InputConstants.isKeyDown(keyMapping.key.getValue()));
             }
         };
 
@@ -327,7 +327,7 @@ public class ViewfinderCameraControlsScreen extends Screen {
     @Override
     public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (KeyboardHandler.getCameraControlsKey().matches(event)) {
             if (isToggleTimeReached())
@@ -346,7 +346,7 @@ public class ViewfinderCameraControlsScreen extends Screen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (super.keyPressed(event)) return true;
 

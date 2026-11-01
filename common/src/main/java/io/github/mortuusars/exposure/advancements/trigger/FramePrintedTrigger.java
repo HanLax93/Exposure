@@ -4,14 +4,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.mortuusars.exposure.advancements.predicate.FramePredicate;
 import io.github.mortuusars.exposure.world.camera.frame.Frame;
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
 import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.advancements.predicates.LocationPredicate;
 import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -30,12 +31,12 @@ public class FramePrintedTrigger extends SimpleCriterionTrigger<FramePrintedTrig
                 triggerInstance.matches(player, pos, frame, result));
     }
 
-    public record TriggerInstance(Optional<ContextAwarePredicate> player,
+    public record TriggerInstance(Optional<Holder<LootItemCondition>> player,
                                   Optional<LocationPredicate> location,
                                   Optional<FramePredicate> frame,
                                   Optional<ItemPredicate> item) implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                        EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
+                        LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
                         LocationPredicate.CODEC.optionalFieldOf("location").forGetter(TriggerInstance::location),
                         FramePredicate.CODEC.optionalFieldOf("frame").forGetter(TriggerInstance::frame),
                         ItemPredicate.CODEC.optionalFieldOf("item").forGetter(TriggerInstance::item))

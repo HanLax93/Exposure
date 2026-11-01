@@ -14,6 +14,7 @@ import io.github.mortuusars.exposure.network.Packets;
 import io.github.mortuusars.exposure.network.packet.serverbound.AlbumSignC2SP;
 import io.github.mortuusars.exposure.util.Side;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -54,7 +55,7 @@ public class AlbumMenu extends AbstractContainerMenu {
         put(CANCEL_ADDING_PHOTO_BUTTON, p -> {
             sideBeingAddedTo = null;
             if (!getCarried().isEmpty()) {
-                p.getInventory().placeItemBackInInventory(getCarried());
+                p.getInventory().placeItemBackInInventory(getCarried(), Prediction.SERVER_ONLY);
                 setCarried(ItemStack.EMPTY);
             }
             updatePlayerInventorySlots();
@@ -289,7 +290,7 @@ public class AlbumMenu extends AbstractContainerMenu {
         else {
             ItemStack stack = slot.getItem();
             if (!player.getInventory().add(stack))
-                player.drop(stack, false);
+                player.drop(stack, false, Prediction.SERVER_ONLY);
 
             slot.set(ItemStack.EMPTY);
         }

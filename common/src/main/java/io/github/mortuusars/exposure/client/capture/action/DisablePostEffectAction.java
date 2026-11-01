@@ -1,18 +1,24 @@
 package io.github.mortuusars.exposure.client.capture.action;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+
+import java.util.List;
 
 public class DisablePostEffectAction implements CaptureAction {
-    private boolean effectActive;
+    private List<Identifier> requestedPostEffects = List.of();
 
     @Override
     public void beforeCapture() {
-        effectActive = Minecraft.getInstance().gameRenderer.effectActive;
-        Minecraft.getInstance().gameRenderer.effectActive = false;
+        List<Identifier> effects = Minecraft.getInstance().gameRenderer.getRequestedPostEffects();
+        requestedPostEffects = List.copyOf(effects);
+        effects.clear();
     }
 
     @Override
     public void afterCapture() {
-        Minecraft.getInstance().gameRenderer.effectActive = effectActive;
+        List<Identifier> effects = Minecraft.getInstance().gameRenderer.getRequestedPostEffects();
+        effects.clear();
+        effects.addAll(requestedPostEffects);
     }
 }

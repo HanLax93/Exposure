@@ -7,14 +7,14 @@ import java.util.function.*;
 public record KeyBinding(Key matcher, Supplier<Boolean> handler) {
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         return matchesPress(keyCode, scanCode, modifiers) && handler().get();
     }
 
     public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         return matchesRelease(keyCode, scanCode, modifiers) && handler().get();
     }

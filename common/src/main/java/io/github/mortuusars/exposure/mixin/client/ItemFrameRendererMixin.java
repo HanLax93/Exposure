@@ -59,8 +59,8 @@ public abstract class ItemFrameRendererMixin<T extends ItemFrame>
                 ? 0
                 : -90 * direction.getAxisDirection().getStep();
         float yRot = direction.getAxis().isHorizontal() ? 180 - direction.toYRot() : 180;
-        poseStack.mulPose(Axis.XP.rotationDegrees(xRot));
-        poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
+        poseStack.rotateDegrees(Axis.XP, xRot);
+        poseStack.rotateDegrees(Axis.YP, yRot);
         poseStack.translate(0, 0, state.isInvisible ? 0.5f : 0.4375f);
         ItemFramePhotographRenderer.render(state, poseStack, collector,
                 state.lightCoords, photographItem, stack);

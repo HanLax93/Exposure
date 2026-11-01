@@ -6,7 +6,7 @@ import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.util.color.Color;
 import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.RegistryFixedCodec;
+import net.minecraft.core.registries.codec.RegistryFixedCodec;
 import net.minecraft.resources.Identifier;
 
 public record Filter(ItemPredicate predicate,

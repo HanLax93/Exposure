@@ -2,6 +2,7 @@ package io.github.mortuusars.exposure.world.inventory;
 
 import io.github.mortuusars.exposure.Exposure;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -88,7 +89,7 @@ public class LecternAlbumMenu extends AbstractContainerMenu {
                 ItemStack itemStack = this.container.removeItemNoUpdate(0);
                 this.container.setChanged();
                 if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
+                    player.drop(itemStack, false, Prediction.SERVER_ONLY);
                 }
 
                 return true;

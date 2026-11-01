@@ -223,7 +223,7 @@ public class ViewfinderOverlay {
     }
 
     public void applyAttackAnimation(Matrix3x2fStack poseStack, DeltaTracker deltaTracker) {
-        float attack = player.attackAnim;
+        float attack = player.getSwingAnimation(deltaTracker.getGameTimeDeltaPartialTick(false));
         if (attack > 0.1f)
             attack = 1f - attack;
 

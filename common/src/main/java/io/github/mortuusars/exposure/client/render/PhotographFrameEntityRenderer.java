@@ -105,8 +105,8 @@ public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
         double hangOffset = 0.46875;
         poseStack.translate(direction.getStepX() * hangOffset,
                 direction.getStepY() * hangOffset, direction.getStepZ() * hangOffset);
-        poseStack.mulPose(Axis.XP.rotationDegrees(state.xRot));
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - state.yRot));
+        poseStack.rotateDegrees(Axis.XP, state.xRot);
+        poseStack.rotateDegrees(Axis.YP, 180.0F - state.yRot);
 
         int lightCoords = state.glowing ? LightCoordsUtil.FULL_BRIGHT : state.lightCoords;
         if (state.image != null) {
@@ -116,7 +116,7 @@ public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
             float scale = 0.65f + state.size * 0.5f;
             poseStack.translate(0, 0, 0.46875);
             poseStack.scale(scale, scale, scale * 0.75f);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(state.itemRotation * 90.0F));
+            poseStack.rotateDegrees(Axis.ZP, state.itemRotation * 90.0F);
             state.fallbackItem.submit(poseStack, collector, lightCoords,
                     OverlayTexture.NO_OVERLAY, state.outlineColor);
             poseStack.popPose();
@@ -155,7 +155,7 @@ public class PhotographFrameEntityRenderer<T extends PhotographFrameEntity>
         float z = (state.frameInvisible ? 0.497f : 0.48f)
                 - Config.Client.PHOTOGRAPH_FRAME_IMAGE_OFFSET.get().floatValue();
         float size = state.size + 1 - border * 2;
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.itemRotation * 90.0F + 180.0F));
+        poseStack.rotateDegrees(Axis.ZP, state.itemRotation * 90.0F + 180.0F);
         poseStack.translate(-0.5 * (state.size + 1) + border,
                 -0.5 * (state.size + 1) + border, z);
         poseStack.scale(size, size, 1);

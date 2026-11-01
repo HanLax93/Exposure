@@ -19,7 +19,7 @@ public class NativeImagePngFileLoader implements ImageFileLoader {
     @Override
     public Result<Image> load(File file) {
         try (FileInputStream inputStream = new FileInputStream(file)) {
-            NativeImage image = NativeImage.read(NativeImage.Format.RGBA, inputStream);
+            NativeImage image = NativeImage.read(inputStream);
 
             if (image.getWidth() > 10_000 || image.getHeight() > 10_000) {
                 LOGGER.error("Cannot load image from file '{}': image is too large.", file);

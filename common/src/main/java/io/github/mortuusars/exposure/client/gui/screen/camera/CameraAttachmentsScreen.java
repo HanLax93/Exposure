@@ -1,6 +1,7 @@
 package io.github.mortuusars.exposure.client.gui.screen.camera;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.Blaze3D;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.mortuusars.exposure.Config;
 import io.github.mortuusars.exposure.Exposure;
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.net.URI;
 
 public class CameraAttachmentsScreen extends AbstractContainerScreen<AbstractCameraAttachmentsMenu> {
     public static final Identifier TEXTURE = Exposure.resource("textures/gui/camera_attachments.png");
@@ -317,17 +319,17 @@ public class CameraAttachmentsScreen extends AbstractContainerScreen<AbstractCam
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         int keyCode = event.key();
-        int scanCode = event.scancode();
+        int scanCode = event.keycode();
         int modifiers = event.modifiers();
         if (keyCode == InputConstants.KEY_F1) {
             String url = "https://moddedmc.wiki/project/exposure";
             Minecrft.get().gui.setScreen(new ConfirmLinkScreen(confirmed -> {
                 if (confirmed) {
-                    Util.getPlatform().openUri(url);
+                    Blaze3D.openUri(URI.create(url));
                 }
 
                 Minecrft.get().gui.setScreen(this);
-            }, "https://moddedmc.wiki/project/exposure", true));
+            }, URI.create("https://moddedmc.wiki/project/exposure"), true));
             return true;
         }
 
