@@ -1,8 +1,6 @@
 package io.github.mortuusars.exposure.integration.jade.component_provider;
 
 import io.github.mortuusars.exposure.Exposure;
-import io.github.mortuusars.exposure.world.block.entity.Lightroom;
-import io.github.mortuusars.exposure.world.block.entity.LightroomBlockEntity;
 import io.github.mortuusars.exposure.world.lightroom.PrintingMode;
 import io.github.mortuusars.exposure.integration.jade.ExposureJadePlugin;
 import net.minecraft.ChatFormatting;
@@ -19,7 +17,7 @@ import snownee.jade.api.view.*;
 import java.util.Collections;
 import java.util.List;
 
-public enum LightroomComponentProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+public enum LightroomComponentProvider implements IBlockComponentProvider {
     INSTANCE;
 
     @Override
@@ -61,39 +59,8 @@ public enum LightroomComponentProvider implements IBlockComponentProvider, IServ
         tooltip.add(JadeUI.spacer(0, 2));
     }
 
-    @Override
-    public void appendServerData(CompoundTag tag, BlockAccessor blockAccessor) {
-        if (blockAccessor.getBlockEntity() instanceof LightroomBlockEntity lightroomBlockEntity) {
-            if (lightroomBlockEntity.isEmpty()) {
-                tag.putBoolean("Empty", true);
-                return;
-            }
-
-            storeStack(tag, "Film", lightroomBlockEntity.getItem(Lightroom.FILM_SLOT));
-            storeStack(tag, "Paper", lightroomBlockEntity.getItem(Lightroom.PAPER_SLOT));
-            storeStack(tag, "Cyan", lightroomBlockEntity.getItem(Lightroom.CYAN_SLOT));
-            storeStack(tag, "Yellow", lightroomBlockEntity.getItem(Lightroom.YELLOW_SLOT));
-            storeStack(tag, "Magenta", lightroomBlockEntity.getItem(Lightroom.MAGENTA_SLOT));
-            storeStack(tag, "Black", lightroomBlockEntity.getItem(Lightroom.BLACK_SLOT));
-            storeStack(tag, "Result", lightroomBlockEntity.getItem(Lightroom.RESULT_SLOT));
-
-            tag.putString("Process", lightroomBlockEntity.getActualPrintingMode().getSerializedName());
-
-            tag.putFloat("Progress", lightroomBlockEntity.getProgressPercentage());
-        }
-    }
-
     private static ItemStack readStack(CompoundTag tag, String key) {
         return tag.read(key, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-    }
-
-    private static void storeStack(CompoundTag tag, String key, ItemStack stack) {
-        tag.store(key, ItemStack.OPTIONAL_CODEC, stack);
-    }
-
-    @Override
-    public boolean shouldRequestData(BlockAccessor accessor) {
-        return true;
     }
 
     @Override
