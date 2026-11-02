@@ -42,5 +42,10 @@
     "java": ">=25",
     "fabric-api": "*",
     "forgeconfigapiport": ">=${forge_config_api_port_version}"
+  },
+  "suggests": {
+    "roughlyenoughitems": "*",
+    "realcamera": "*",
+    "jade": "*"
   }
 }

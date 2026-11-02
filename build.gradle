@@ -264,6 +264,9 @@ publishMods {
         requires("fabric-api")
         requires("forge-config-api-port")
         optional("jei")
+        optional("roughly-enough-items")
+        optional("real-camera")
+        optional("jade")
     }
 
     modrinth("modrinthFabric") {
@@ -274,5 +277,8 @@ publishMods {
         requires("fabric-api")
         requires("forge-config-api-port")
         optional("jei")
+        optional("rei")
+        optional("real-camera")
+        optional("jade")
     }
 }
