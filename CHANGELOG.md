@@ -4,6 +4,17 @@
 - Updated localization files.
 - Fixed wrong config translation
 
+## 0.1.2 - 2026-11-02
+- Fixed Exposure's Jade plugin failing to load on Minecraft 26.3.
+- Split Lightroom server data collection from client tooltip rendering for the current Jade API.
+- Restored Jade information for the Lightroom and Photograph Frame.
+
+## 0.1.1 - 2026-11-02
+- Fixed dedicated servers crashing when printing photographs created by players with uppercase characters in their names.
+- Normalized exposure storage identifiers and migrated legacy uppercase photograph file names.
+- Prevented the Lightroom screen from crashing while a disconnected server config is being unloaded.
+- Fixed opening the camera from third-person view without a visible viewfinder transition.
+
 ## 0.1.0 - 2026-11-02
 - Initial unofficial Fabric port for Minecraft 26.3, based on Exposure 1.9.18.
 - Migrated runtime, rendering, GUI, data, recipes, and advancements to Minecraft 26.3 APIs.
