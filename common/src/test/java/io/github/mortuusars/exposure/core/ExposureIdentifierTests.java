@@ -8,6 +8,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import io.github.mortuusars.exposure.Exposure;
+import io.github.mortuusars.exposure.world.level.storage.ExposureData;
 import io.github.mortuusars.exposure.world.level.storage.ExposureIdentifier;
 import net.minecraft.util.GsonHelper;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ExposureIdentifierTests {
+    @Test
+    void generatedIdsAreValidSavedDataPaths() {
+        assertEquals("han-lax_15223021", ExposureIdentifier.createId("Han-Lax", "15223021"));
+        assertEquals("han-lax_15223021", ExposureData.storageId("Han-Lax_15223021"));
+        assertDoesNotThrow(() -> ExposureData.type("Han-Lax_15223021"));
+    }
+
     @Test
     void canOnlyBeIdOrTexture() {
         ExposureIdentifier id = ExposureIdentifier.id("test");

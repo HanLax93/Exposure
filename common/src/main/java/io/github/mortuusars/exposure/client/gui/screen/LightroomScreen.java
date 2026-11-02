@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.mortuusars.exposure.Exposure;
 import io.github.mortuusars.exposure.ExposureClient;
+import io.github.mortuusars.exposure.Config;
 import io.github.mortuusars.exposure.client.gui.toast.BetterTutorialToast;
 import io.github.mortuusars.exposure.client.gui.toast.ToastIcon;
 import io.github.mortuusars.exposure.client.input.Key;
@@ -127,6 +128,10 @@ public class LightroomScreen extends AbstractContainerScreen<LightroomMenu> {
     }
 
     protected void updatePrintButtonTooltip() {
+        if (!Config.Server.SPEC.isLoaded()) {
+            return;
+        }
+
         MutableComponent tooltip = Component.translatable("gui.exposure.lightroom.print");
         if (!getMenu().getBlockEntity().hasSufficientLightLevel()) {
             tooltip.append("\n")
@@ -178,9 +183,13 @@ public class LightroomScreen extends AbstractContainerScreen<LightroomMenu> {
     }
 
     protected void updateButtons() {
-        printButton.active = getMenu().getBlockEntity().canPrint() || (player.isCreative() && Minecrft.get().hasShiftDown() && getMenu().getBlockEntity().canPrintInCreativeMode());
+        boolean serverConfigLoaded = Config.Server.SPEC.isLoaded();
+        printButton.active = serverConfigLoaded && (getMenu().getBlockEntity().canPrint()
+                || (player.isCreative() && Minecrft.get().hasShiftDown() && getMenu().getBlockEntity().canPrintInCreativeMode()));
         printButton.visible = !getMenu().isPrinting();
-        updatePrintButtonTooltip();
+        if (serverConfigLoaded) {
+            updatePrintButtonTooltip();
+        }
 
         printingModeToggleButton.active = true;
         printingModeToggleButton.visible = getMenu().canChangeProcess();

@@ -54,6 +54,7 @@ public class ExposureRepository {
         this.exposuresFolderPath = dataFolderPath.resolve(Exposure.ID + "/" + EXPOSURES_DIRECTORY_NAME);
         // 将旧版本（1.21.x 等）保存在世界根 data/ 目录下的数据迁移到 26.2 的维度目录
         migrateLegacyFiles();
+        normalizeExposureFileNames();
     }
 
     public List<String> getAllIds() {
@@ -80,7 +81,7 @@ public class ExposureRepository {
         @Nullable ExposureData exposureData = dataStorage.get(ExposureData.type(id));
 
         if (exposureData == null) {
-            File filepath = exposuresFolderPath.resolve(id + ".dat").toFile();
+            File filepath = exposureFile(id).toFile();
             if (!filepath.exists()) {
                 LOGGER.error("Exposure '{}' was not loaded. File '{}' does not exist.", id, filepath);
                 return RequestedPalettedExposure.NOT_FOUND;
@@ -115,7 +116,7 @@ public class ExposureRepository {
     }
 
     public boolean delete(String id) throws IOException {
-        return Files.deleteIfExists(exposuresFolderPath.resolve(id + ".dat"));
+        return Files.deleteIfExists(exposureFile(id));
     }
 
     public void expect(ServerPlayer player, String id, BiConsumer<ServerPlayer, String> onReceived) {
@@ -244,7 +245,8 @@ public class ExposureRepository {
             }
 
             for (Path file : legacyFiles) {
-                Path dest = exposuresFolderPath.resolve(file.getFileName());
+                String id = com.google.common.io.Files.getNameWithoutExtension(file.getFileName().toString());
+                Path dest = exposureFile(id);
                 if (Files.exists(dest)) {
                     continue; // 目标位置已有同 id 数据，不覆盖
                 }
@@ -254,6 +256,41 @@ public class ExposureRepository {
         } catch (IOException e) {
             LOGGER.error("Failed to migrate legacy exposure files from '{}': {}", legacyFolder, e.toString());
         }
+    }
+
+    /**
+     * 26.3 represents SavedData keys as resource identifiers. Older Exposure versions allowed
+     * uppercase characters in photo ids and file names, so normalize those files before Minecraft
+     * tries to load them through SavedDataStorage.
+     */
+    private void normalizeExposureFileNames() {
+        if (!Files.isDirectory(exposuresFolderPath)) {
+            return;
+        }
+
+        try (Stream<Path> stream = Files.list(exposuresFolderPath)) {
+            for (Path file : stream.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".dat"))
+                    .toList()) {
+                String id = com.google.common.io.Files.getNameWithoutExtension(file.getFileName().toString());
+                Path normalizedFile = exposureFile(id);
+                if (file.equals(normalizedFile)) {
+                    continue;
+                }
+                if (Files.exists(normalizedFile)) {
+                    LOGGER.warn("Cannot normalize legacy exposure file '{}' because '{}' already exists.", file, normalizedFile);
+                    continue;
+                }
+                Files.move(file, normalizedFile);
+                LOGGER.info("Normalized legacy exposure file '{}' to '{}'.", file, normalizedFile);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to normalize exposure file names in '{}': {}", exposuresFolderPath, e.toString());
+        }
+    }
+
+    private Path exposureFile(String id) {
+        return exposuresFolderPath.resolve(ExposureData.storageId(id) + ".dat");
     }
 
     private void migrateLegacyFrameHistory(Path legacyFile) {

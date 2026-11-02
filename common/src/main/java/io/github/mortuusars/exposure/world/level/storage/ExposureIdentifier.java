@@ -202,6 +202,7 @@ public class ExposureIdentifier {
         List<String> sanitizedParts = Arrays.stream(parts)
                 .filter(s -> !StringUtil.isNullOrEmpty(s))
                 .map(s -> s.replaceAll("[^A-Za-z0-9-]", "-"))
+                .map(s -> s.toLowerCase(Locale.ROOT))
                 .toList();
         return String.join("_", sanitizedParts);
     }

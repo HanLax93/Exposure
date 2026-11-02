@@ -17,6 +17,7 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 
 public class ExposureData extends SavedData {
@@ -103,8 +104,16 @@ public class ExposureData extends SavedData {
 
     // --
 
+    /**
+     * Saved data identifiers are resource identifiers on 26.3, so their paths must be lowercase.
+     * Exposure ids are kept unchanged in items and packets; only their on-disk key is normalized.
+     */
+    public static String storageId(String id) {
+        return id.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "-");
+    }
+
     public static SavedDataType<ExposureData> type(String id) {
-        return new SavedDataType<>(Exposure.resource("exposures/" + id), () -> {
+        return new SavedDataType<>(Exposure.resource("exposures/" + storageId(id)), () -> {
             throw new IllegalStateException("Should never create an empty exposure saved data");
         }, CODEC, null);
     }
