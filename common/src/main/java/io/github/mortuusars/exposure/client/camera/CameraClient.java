@@ -59,7 +59,7 @@ public class CameraClient {
         removeViewfinder();
         activeViewfinder = ViewfinderRegistry.get(camera);
 
-        if (camera instanceof CameraOnStand) {
+        if (camera instanceof CameraOnStand || !activeViewfinder.isLookingThrough()) {
             Minecrft.options().setCameraType(CameraType.FIRST_PERSON);
         }
     }
